@@ -1,253 +1,251 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Tracker - Вход</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход — Booek</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Inline styles so login doesn't depend on static CSS path */
+    :root {
+      --bg: #f5f5f7;
+      --surface: rgba(255,255,255,0.90);
+      --border: rgba(15,23,42,0.08);
+      --text: #1d1d1f;
+      --text-muted: #6e6e73;
+      --text-faint: #9a9aa1;
+      --primary: #0071e3;
+      --primary-soft: rgba(0,113,227,0.10);
+      --surface-muted: #f0f1f4;
+      --danger: #ff453a;
+      --shadow-lg: 0 24px 48px rgba(15,23,42,0.12);
+      --font: 'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg: #0b0b0f;
+      --surface: rgba(28,28,30,0.92);
+      --border: rgba(255,255,255,0.08);
+      --text: #f5f5f7;
+      --text-muted: #a1a1aa;
+      --text-faint: #71717a;
+      --primary: #0a84ff;
+      --primary-soft: rgba(10,132,255,0.15);
+      --surface-muted: #2c2c2f;
+      --shadow-lg: 0 32px 60px rgba(0,0,0,0.45);
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html,body {
+      font-family: var(--font); background: var(--bg); color: var(--text);
+      min-height: 100vh;
+    }
+    body {
+      background:
+        radial-gradient(circle at top left, rgba(0,113,227,0.06), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(0,113,227,0.04), transparent 30%),
+        var(--bg);
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+    }
+    [data-theme="dark"] body {
+      background:
+        radial-gradient(circle at top left, rgba(10,132,255,0.12), transparent 28%),
+        var(--bg);
+    }
+    .login-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px; padding: 44px 36px 36px;
+      max-width: 380px; width: 100%;
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(20px);
+      animation: slideUp 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes slideUp {
+      from { opacity:0; transform: translateY(24px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    .login-logo { text-align:center; margin-bottom:28px; }
+    .brand-mark {
+      width:48px; height:48px; border-radius:16px; margin:0 auto 10px;
+      background: linear-gradient(160deg, var(--primary), #4da3ff);
+      box-shadow: 0 8px 20px rgba(0,113,227,0.3);
+    }
+    .login-title { font-size:24px; font-weight:700; letter-spacing:-0.04em; margin-bottom:4px; }
+    .login-sub { color: var(--text-muted); font-size:14px; }
 
-        :root {
-            --primary: #32B8C6;
-            --primary-light: #2DAAB2;
-            --bg-dark: #1F2121;
-            --bg-surface: #1E2630;
-            --text-primary: #F1F5F9;
-            --text-secondary: #94A3B8;
-            --border-color: #2D3748;
-            --error: #FF5459;
-            --shadow-glow: 0 0 24px rgba(50, 184, 198, 0.35);
-        }
+    .pin-dots {
+      display:flex; gap:10px; justify-content:center;
+      margin:24px 0 20px; align-items:center;
+    }
+    .pin-dot {
+      width:12px; height:12px; border-radius:50%;
+      background: var(--surface-muted);
+      transition: all 0.2s ease;
+    }
+    .pin-dot.filled {
+      background: var(--primary);
+      box-shadow: 0 0 14px rgba(0,113,227,0.4);
+      animation: popDot 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popDot {
+      0%   { transform:scale(1); }
+      50%  { transform:scale(1.4); }
+      100% { transform:scale(1); }
+    }
 
-        html, body {
-            width: 100%; height: 100%;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            overflow: hidden;
-        }
+    .msg {
+      display:none; text-align:center; font-size:13px;
+      margin-bottom:16px; padding:10px 14px; border-radius:12px;
+    }
+    .msg.error {
+      display:block; color:var(--danger);
+      background:rgba(255,69,58,0.1); border-left:3px solid var(--danger);
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform:translateX(0); }
+      25%      { transform:translateX(-6px); }
+      75%      { transform:translateX(6px); }
+    }
 
-        body::before {
-            content: '';
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background:
-                radial-gradient(circle at 20% 50%, rgba(50,184,198,0.07) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(94,82,64,0.07) 0%, transparent 50%);
-            pointer-events: none; z-index: 0;
-        }
+    .pin-pad {
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:8px; margin-bottom:12px;
+    }
+    .pin-btn {
+      aspect-ratio:1;
+      border:1px solid var(--border); background:rgba(128,128,128,0.05);
+      color:var(--text); border-radius:16px;
+      font-size:22px; font-weight:600;
+      cursor:pointer; transition:all 0.15s;
+      display:flex; align-items:center; justify-content:center;
+      font-family:inherit; user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .pin-btn:hover { background:rgba(0,113,227,0.08); border-color:rgba(0,113,227,0.3); }
+    .pin-btn:active { transform:scale(0.93); }
+    .pin-btn.delete { font-size:18px; color:var(--text-muted); }
+    .pin-btn.delete:hover { color:var(--danger); border-color:rgba(255,69,58,0.3); }
+    .pin-btn.submit {
+      grid-column:span 3; aspect-ratio:unset; padding:15px;
+      background:var(--primary); border:none; border-radius:16px;
+      color:#fff; font-size:15px; font-weight:700; letter-spacing:0.01em;
+      cursor:pointer; transition:all 0.2s;
+    }
+    .pin-btn.submit:hover { background:#0077ed; transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,113,227,0.35); }
+    .pin-btn.submit:active { transform:translateY(0); }
+    .pin-btn.submit:disabled { opacity:0.35; cursor:not-allowed; transform:none; box-shadow:none; }
 
-        .login-container {
-            display: flex; align-items: center; justify-content: center;
-            width: 100%; height: 100%;
-            position: relative; z-index: 1; padding: 20px;
-        }
-
-        .login-box {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 48px 36px 40px;
-            max-width: 380px; width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(28px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .login-header { text-align: center; margin-bottom: 36px; }
-        .login-title { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 6px; }
-        .login-subtitle { color: var(--text-secondary); font-size: 13px; }
-
-        .pin-dots {
-            display: flex; gap: 10px; justify-content: center;
-            margin-bottom: 32px; height: 18px; align-items: center;
-        }
-
-        .pin-dot {
-            width: 13px; height: 13px; border-radius: 50%;
-            background: var(--border-color);
-            transition: all 0.2s ease;
-        }
-
-        .pin-dot.filled {
-            background: var(--primary);
-            box-shadow: var(--shadow-glow);
-            animation: popDot 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        @keyframes popDot {
-            0%   { transform: scale(1); }
-            50%  { transform: scale(1.35); }
-            100% { transform: scale(1); }
-        }
-
-        .pin-pad {
-            display: grid; grid-template-columns: repeat(3, 1fr);
-            gap: 10px; margin-bottom: 16px;
-        }
-
-        .pin-btn {
-            aspect-ratio: 1;
-            border: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.03);
-            color: var(--text-primary);
-            border-radius: 14px;
-            font-size: 22px; font-weight: 600;
-            cursor: pointer; transition: all 0.15s ease;
-            display: flex; align-items: center; justify-content: center;
-            font-family: inherit; position: relative; overflow: hidden;
-            -webkit-tap-highlight-color: transparent; user-select: none;
-        }
-
-        .pin-btn:hover { background: rgba(50,184,198,0.08); border-color: rgba(50,184,198,0.4); transform: scale(1.04); }
-        .pin-btn:active { transform: scale(0.93); background: rgba(50,184,198,0.15); }
-
-        .pin-btn.delete { font-size: 18px; color: var(--text-secondary); }
-        .pin-btn.delete:hover { color: var(--error); border-color: rgba(255,84,89,0.35); background: rgba(255,84,89,0.07); }
-
-        .pin-btn.submit {
-            grid-column: span 3; aspect-ratio: unset; padding: 16px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border: none; border-radius: 14px;
-            color: #0F1923; font-size: 15px; font-weight: 700; letter-spacing: 0.02em;
-            cursor: pointer; transition: all 0.25s ease; position: relative; overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .pin-btn.submit::after {
-            content: ''; position: absolute; top: 0; left: -100%;
-            width: 100%; height: 100%; background: rgba(255,255,255,0.12);
-            transition: left 0.5s ease;
-        }
-
-        .pin-btn.submit:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow); }
-        .pin-btn.submit:hover::after { left: 100%; }
-        .pin-btn.submit:active { transform: translateY(0); }
-        .pin-btn.submit:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
-
-        .msg {
-            display: none; text-align: center; font-size: 13px;
-            margin-bottom: 18px; padding: 11px 14px; border-radius: 10px;
-        }
-        .msg.error { color: var(--error); background: rgba(255,84,89,0.1); border-left: 3px solid var(--error); animation: shake 0.4s ease; }
-        .msg.success { color: var(--primary); background: rgba(50,184,198,0.1); border-left: 3px solid var(--primary); }
-        .msg.show { display: block; }
-
-        @keyframes shake {
-            0%,100% { transform: translateX(0); }
-            25%      { transform: translateX(-7px); }
-            75%      { transform: translateX(7px); }
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .msg.success.show { animation: fadeIn 0.3s ease; }
-
-        @media (max-width: 420px) {
-            .login-box { padding: 36px 20px 28px; border-radius: 16px; }
-            .login-title { font-size: 22px; }
-            .pin-pad { gap: 8px; }
-            .pin-btn { font-size: 19px; border-radius: 12px; }
-            .pin-btn.submit { border-radius: 12px; }
-        }
-    </style>
+    .theme-toggle {
+      position:fixed; top:16px; right:16px;
+      width:36px; height:36px; border-radius:50%;
+      border:1px solid var(--border); background:var(--surface);
+      color:var(--text); font-size:16px; cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      transition:all 0.15s;
+    }
+    .theme-toggle:hover { background:rgba(128,128,128,0.1); }
+  </style>
 </head>
 <body>
-<div class="login-container">
-    <div class="login-box">
-        <div class="login-header">
-            <h1 class="login-title">Media Tracker</h1>
-            <p class="login-subtitle">Введите PIN-код для входа</p>
-        </div>
+<button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn" aria-label="Переключить тему">☀️</button>
 
-        <form id="loginForm" method="POST" action="/login">
-            <div class="msg error" id="errorMsg">{% if error %}{{ error }}{% endif %}</div>
-            <div class="msg success" id="successMsg"></div>
+<div class="login-box">
+  <div class="login-logo">
+    <div class="brand-mark"></div>
+    <div class="login-title">Booek</div>
+    <div class="login-sub">Введите PIN-код для входа</div>
+  </div>
 
-            <div class="pin-dots" id="pinDots"></div>
+  {% if error %}
+  <div class="msg error">{{ error }}</div>
+  {% endif %}
 
-            <input type="hidden" name="csrf_token" id="csrfToken" value="{{ csrf_token }}">
-            <input type="hidden" name="pin" id="pinInput" value="">
+  <form id="loginForm" method="POST" action="/login">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="pin" id="pinInput" value="">
 
-            <div class="pin-pad">
-                <button type="button" class="pin-btn" data-n="1">1</button>
-                <button type="button" class="pin-btn" data-n="2">2</button>
-                <button type="button" class="pin-btn" data-n="3">3</button>
-                <button type="button" class="pin-btn" data-n="4">4</button>
-                <button type="button" class="pin-btn" data-n="5">5</button>
-                <button type="button" class="pin-btn" data-n="6">6</button>
-                <button type="button" class="pin-btn" data-n="7">7</button>
-                <button type="button" class="pin-btn" data-n="8">8</button>
-                <button type="button" class="pin-btn" data-n="9">9</button>
-                <button type="button" class="pin-btn delete" id="delBtn">&#x232B;</button>
-                <button type="button" class="pin-btn" data-n="0">0</button>
-                <button type="submit" class="pin-btn submit" id="submitBtn" disabled>Войти</button>
-            </div>
-        </form>
+    <div class="pin-dots" id="pinDots"></div>
+
+    <div class="pin-pad">
+      <button type="button" class="pin-btn" data-n="1">1</button>
+      <button type="button" class="pin-btn" data-n="2">2</button>
+      <button type="button" class="pin-btn" data-n="3">3</button>
+      <button type="button" class="pin-btn" data-n="4">4</button>
+      <button type="button" class="pin-btn" data-n="5">5</button>
+      <button type="button" class="pin-btn" data-n="6">6</button>
+      <button type="button" class="pin-btn" data-n="7">7</button>
+      <button type="button" class="pin-btn" data-n="8">8</button>
+      <button type="button" class="pin-btn" data-n="9">9</button>
+      <button type="button" class="pin-btn delete" id="delBtn">&#x232B;</button>
+      <button type="button" class="pin-btn" data-n="0">0</button>
+      <button type="submit" class="pin-btn submit" id="submitBtn" disabled>Войти</button>
     </div>
+  </form>
 </div>
 
 <script>
-    const PIN_LEN = 6;
-    let pin = '';
+  const PIN_LEN = 6;
+  let pin = '';
+  const dotsEl   = document.getElementById('pinDots');
+  const pinInput = document.getElementById('pinInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const form = document.getElementById('loginForm');
 
-    const dotsEl     = document.getElementById('pinDots');
-    const pinInput   = document.getElementById('pinInput');
-    const errorMsg   = document.getElementById('errorMsg');
-    const successMsg = document.getElementById('successMsg');
-    const submitBtn  = document.getElementById('submitBtn');
-    const form       = document.getElementById('loginForm');
-
-    // Показать ошибку сервера сразу при загрузке
-    if (errorMsg.textContent.trim()) errorMsg.classList.add('show');
-
-    function renderDots() {
-        dotsEl.innerHTML = '';
-        for (let i = 0; i < PIN_LEN; i++) {
-            const d = document.createElement('div');
-            d.className = 'pin-dot' + (i < pin.length ? ' filled' : '');
-            dotsEl.appendChild(d);
-        }
-        pinInput.value = pin;
-        submitBtn.disabled = pin.length !== PIN_LEN;
+  function renderDots() {
+    dotsEl.innerHTML = '';
+    for (let i = 0; i < PIN_LEN; i++) {
+      const d = document.createElement('div');
+      d.className = 'pin-dot' + (i < pin.length ? ' filled' : '');
+      dotsEl.appendChild(d);
     }
+    pinInput.value = pin;
+    submitBtn.disabled = pin.length !== PIN_LEN;
+  }
 
-    function addDigit(n) {
-        if (pin.length < PIN_LEN) {
-            pin += n;
-            renderDots();
-            if (navigator.vibrate) navigator.vibrate(10);
-            errorMsg.classList.remove('show');
-        }
+  function addDigit(n) {
+    if (pin.length < PIN_LEN) {
+      pin += n; renderDots();
+      if (navigator.vibrate) navigator.vibrate(10);
     }
+  }
 
-    function delDigit() {
-        if (pin.length > 0) {
-            pin = pin.slice(0, -1);
-            renderDots();
-            if (navigator.vibrate) navigator.vibrate(10);
-        }
-    }
+  function delDigit() {
+    if (pin.length > 0) { pin = pin.slice(0,-1); renderDots(); }
+  }
 
-    document.querySelectorAll('.pin-btn[data-n]').forEach(btn => {
-        btn.addEventListener('click', () => addDigit(btn.dataset.n));
-    });
+  document.querySelectorAll('.pin-btn[data-n]').forEach(btn => {
+    btn.addEventListener('click', () => addDigit(btn.dataset.n));
+  });
+  document.getElementById('delBtn').addEventListener('click', delDigit);
 
-    document.getElementById('delBtn').addEventListener('click', delDigit);
+  document.addEventListener('keydown', e => {
+    if (e.key >= '0' && e.key <= '9') addDigit(e.key);
+    else if (e.key === 'Backspace') delDigit();
+    else if (e.key === 'Enter' && pin.length === PIN_LEN) form.submit();
+  });
 
-    document.addEventListener('keydown', e => {
-        if (e.key >= '0' && e.key <= '9') addDigit(e.key);
-        else if (e.key === 'Backspace') delDigit();
-        else if (e.key === 'Enter' && pin.length === PIN_LEN) form.submit();
-    });
+  form.addEventListener('submit', () => { submitBtn.disabled = true; submitBtn.textContent = '…'; });
 
-    form.addEventListener('submit', () => {
-        submitBtn.disabled = true;
-        submitBtn.textContent = '...';
-    });
+  // Theme
+  (function() {
+    const saved = localStorage.getItem('booek-theme') ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', saved);
+    document.getElementById('theme-toggle-btn').textContent = saved === 'dark' ? '🌙' : '☀️';
+  })();
 
-    renderDots();
+  function toggleTheme() {
+    const html = document.documentElement;
+    const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', next);
+    localStorage.setItem('booek-theme', next);
+    document.getElementById('theme-toggle-btn').textContent = next === 'dark' ? '🌙' : '☀️';
+  }
+
+  renderDots();
 </script>
 </body>
 </html>

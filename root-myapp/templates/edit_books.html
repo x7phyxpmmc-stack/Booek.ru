@@ -1,246 +1,108 @@
 {% extends "base.html" %}
-
-{% block title %}Редактировать книгу - Media Tracker{% endblock %}
-
+{% block title %}Редактировать: {{ item.base.title }} — Booek{% endblock %}
 {% block content %}
-
-<div class="section-header">
-  <h1>{{ item.base.title }}</h1>
-  <p>Отредактируйте информацию о книге</p>
+<div class="content-head">
+  <div class="title-wrap"><h1>📚 {{ item.base.title }}</h1><p>Редактирование книги</p></div>
+  <a href="javascript:history.back()" class="btn-secondary">← Назад</a>
 </div>
-
-<div class="form-container">
-  <form method="POST" enctype="multipart/form-data" class="form-wrapper">
-    
-    <!-- ОСНОВНАЯ ИНФОРМАЦИЯ -->
-    <div class="form-section">
+<div class="page-body">
+<div class="form-shell">
+  <form method="POST" enctype="multipart/form-data">
+    <div class="form-block">
       <h2>Основная информация</h2>
-      
-      <div class="form-group">
-        <label class="form-label">Название (обязательно)</label>
-        <input type="text" name="title" class="form-control" required placeholder="Введите название книги" value="{{ item.base.title }}">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Обложка</label>
-        <div style="margin-bottom: 1rem;">
-          {% if item.base.cover_image %}
-            {% if item.base.cover_source == 'url' %}
-              <img src="{{ item.base.cover_image }}" alt="{{ item.base.title }}" style="max-width: 150px; border-radius: 8px;">
-            {% else %}
-              <img src="{{ url_for('static', filename='uploads/' + item.base.cover_image) }}" alt="{{ item.base.title }}" style="max-width: 150px; border-radius: 8px;">
-            {% endif %}
+      <div class="form-grid">
+        <div class="field form-col-full">
+          <label>Название <span style="color:var(--danger)">*</span></label>
+          <input type="text" name="title" class="input" required value="{{ item.base.title }}">
+        </div>
+        {% if item.base.cover_image %}
+        <div class="form-col-full">
+          {% if item.base.cover_source == 'url' %}
+            <img class="cover-preview" src="{{ item.base.cover_image }}" alt="{{ item.base.title }}">
+          {% else %}
+            <img class="cover-preview" src="{{ url_for('static', filename='uploads/' + item.base.cover_image) }}" alt="{{ item.base.title }}">
           {% endif %}
         </div>
-        <div class="form-input-group">
-          <input type="file" name="cover_image" class="form-control" accept="image/*">
-          <small style="color: var(--color-text-secondary); display: block; margin-top: 0.5rem;">или укажите новый URL обложки:</small>
-          <input type="url" name="cover_url" class="form-control" placeholder="https://example.com/cover.jpg" value="{{ item.base.cover_image if item.base.cover_source == 'url' else '' }}">
+        {% endif %}
+        <div class="field">
+          <label>Новый файл обложки</label>
+          <input type="file" name="cover_image" class="input" accept="image/*">
+        </div>
+        <div class="field">
+          <label>URL обложки</label>
+          <input type="url" name="cover_url" class="input" placeholder="https://..." value="{{ item.base.cover_image if item.base.cover_source == 'url' else '' }}">
         </div>
       </div>
     </div>
-
-    <!-- ТИП И ПАРАМЕТРЫ КНИГИ -->
-    <div class="form-section">
+    <div class="form-block">
       <h2>Параметры книги</h2>
-
-      <div class="form-group">
-        <label class="form-label">Тип книги (обязательно)</label>
-        <select name="book_type" class="form-control" required>
-          <option value="">-- Выберите тип --</option>
-          <option value="бумажная" {% if item.data.book_type == 'бумажная' %}selected{% endif %}>Бумажная</option>
-          <option value="электронная" {% if item.data.book_type == 'электронная' %}selected{% endif %}>Электронная</option>
-          <option value="аудиокнига" {% if item.data.book_type == 'аудиокнига' %}selected{% endif %}>Аудиокнига</option>
-        </select>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Количество страниц (если нужно)</label>
-          <input type="number" name="pages_duration" class="form-control" required min="0" value="{{ item.data.pages_duration }}" placeholder="0">
+      <div class="form-grid">
+        <div class="field">
+          <label>Тип книги <span style="color:var(--danger)">*</span></label>
+          <select name="book_type" class="select-input" required>
+            <option value="бумажная" {% if item.data.book_type == 'бумажная' %}selected{% endif %}>Бумажная</option>
+            <option value="электронная" {% if item.data.book_type == 'электронная' %}selected{% endif %}>Электронная</option>
+            <option value="аудиокнига" {% if item.data.book_type == 'аудиокнига' %}selected{% endif %}>Аудиокнига</option>
+          </select>
         </div>
-
-        <div class="form-group">
-          <label class="form-label">Статус (обязательно)</label>
-          <select name="status" class="form-control" required>
-            <option value="">-- Выберите статус --</option>
+        <div class="field">
+          <label>Кол-во страниц</label>
+          <input type="number" name="pages_duration" class="input" min="0" value="{{ item.data.pages_duration }}">
+        </div>
+        <div class="field">
+          <label>Часов на прочтение</label>
+          <input type="number" name="hours_reading" class="input" min="0" step="0.1" value="{{ item.data.hours_reading }}">
+        </div>
+        <div class="field">
+          <label>Статус <span style="color:var(--danger)">*</span></label>
+          <select name="status" class="select-input" required>
             <option value="планирую" {% if item.data.status == 'планирую' %}selected{% endif %}>Планирую</option>
             <option value="читаю" {% if item.data.status == 'читаю' %}selected{% endif %}>Читаю</option>
             <option value="прочитано" {% if item.data.status == 'прочитано' %}selected{% endif %}>Прочитано</option>
             <option value="не дочитал" {% if item.data.status == 'не дочитал' %}selected{% endif %}>Не дочитал</option>
           </select>
         </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Часов чтения (обязательно)</label>
-          <input type="number" name="hours_reading" class="form-control" required min="0" step="0.1" value="{{ item.data.hours_reading }}" placeholder="0">
+        <div class="field">
+          <label>Повторные прочтения</label>
+          <input type="number" name="rerereads" class="input" min="0" value="{{ item.data.rerereads }}">
         </div>
-
-        <div class="form-group">
-          <label class="form-label">Повторные прочтения</label>
-          <input type="number" name="rerereads" class="form-control" min="0" value="{{ item.data.rerereads }}" placeholder="0">
+        <div class="field form-col-full" id="pages-section" style="display:{% if item.data.status == 'не дочитал' %}block{% else %}none{% endif %};">
+          <label>Прочитано страниц</label>
+          <input type="number" name="pages_read" class="input" min="0" value="{{ item.data.pages_read or 0 }}">
         </div>
-      </div>
-
-      <div id="incomplete-section" style="display: none;">
-        <div class="form-group">
-          <label class="form-label">Прочитано страниц</label>
-          <input type="number" name="pages_read" class="form-control" min="0" value="{{ item.data.pages_read or 0 }}" placeholder="0">
+        <div class="form-col-full">
+          <div class="inline-note">💡 Для аудиокниги используется поле «Часов на прочтение»</div>
         </div>
       </div>
     </div>
-
-    <!-- ДОПОЛНИТЕЛЬНО -->
-    <div class="form-section">
+    <div class="form-block">
       <h2>Дополнительно</h2>
-
-      <div class="form-group">
-        <label class="form-label">Источник (ссылка на книгу)</label>
-        <input type="url" name="source_url" class="form-control" placeholder="https://..." value="{{ item.base.source_url or '' }}">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Заметки</label>
-        <textarea name="notes" class="form-control" rows="3" placeholder="Напишите ваши впечатления...">{{ item.data.notes or '' }}</textarea>
+      <div class="form-grid">
+        <div class="field">
+          <label>Источник (ссылка)</label>
+          <input type="url" name="source_url" class="input" placeholder="https://..." value="{{ item.base.source_url or '' }}">
+        </div>
+        <div class="field form-col-full">
+          <label>Заметки</label>
+          <textarea name="notes" class="textarea-input">{{ item.data.notes or '' }}</textarea>
+        </div>
       </div>
     </div>
-
-    <!-- КНОПКИ -->
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary btn-lg">Сохранить</button>
-      <a href="javascript:history.back()" class="btn btn-secondary btn-lg">Отмена</a>
+      <button type="submit" class="btn-primary">Сохранить</button>
+      <a href="javascript:history.back()" class="btn-secondary">Отмена</a>
+      <form method="POST" action="{{ url_for('delete_item', item_id=item.base.id) }}" onsubmit="return confirm('Удалить эту запись?');" style="margin-left:auto;">
+        <button type="submit" class="btn-danger">Удалить</button>
+      </form>
     </div>
   </form>
 </div>
-
-<style>
-  .form-container {
-    max-width: 700px;
-    margin: 0 auto;
-  }
-
-  .form-wrapper {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 12px;
-    padding: 2rem;
-  }
-
-  .form-section {
-    margin-bottom: 2.5rem;
-  }
-
-  .form-section h2 {
-    font-size: 1.25rem;
-    margin-bottom: 1.5rem;
-    color: var(--color-text);
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-
-  .form-label {
-    display: block;
-    margin-bottom: 0.75rem;
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--color-text);
-  }
-
-  .form-control {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    background: var(--color-background);
-    color: var(--color-text);
-    font-size: 0.95rem;
-    transition: all var(--duration-fast) var(--ease-standard);
-  }
-
-  .form-control:hover {
-    border-color: var(--color-primary);
-  }
-
-  .form-control:focus {
-    outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2);
-  }
-
-  textarea.form-control {
-    resize: vertical;
-    font-family: var(--font-family-base);
-  }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
-  .form-wrapper {
-    padding: 1.5rem;
-  }
-
-  .form-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .form-input-group .form-control {
-    margin: 0;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--color-border);
-  }
-
-  .form-actions .btn {
-    flex: 1;
-  }
-
-  @media (max-width: 600px) {
-    .form-row {
-      grid-template-columns: 1fr;
-    }
-
-    .form-wrapper {
-      padding: 1.5rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .form-actions {
-      flex-direction: column;
-    }
-  }
-</style>
-
+</div>
+{% endblock %}
+{% block extra_scripts %}
 <script>
-  const statusSelect = document.querySelector('select[name="status"]');
-  const incompleteSection = document.getElementById('incomplete-section');
-
-  function updateIncompleteFields() {
-    if (statusSelect.value === 'не дочитал') {
-      incompleteSection.style.display = 'block';
-    } else {
-      incompleteSection.style.display = 'none';
-    }
-  }
-
-  statusSelect.addEventListener('change', updateIncompleteFields);
-  updateIncompleteFields();
+const s = document.querySelector('select[name="status"]');
+const p = document.getElementById('pages-section');
+s.addEventListener('change', () => { p.style.display = s.value === 'не дочитал' ? 'block' : 'none'; });
 </script>
-
 {% endblock %}

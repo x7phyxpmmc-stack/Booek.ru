@@ -1,121 +1,104 @@
 {% extends "base.html" %}
-{% block title %}Редактировать мангу - Media Tracker{% endblock %}
+{% block title %}Редактировать: {{ item.base.title }} — Booek{% endblock %}
 {% block content %}
-<div class="section-header">
-  <h1>{{ item.base.title }}</h1>
-  <p>Отредактируйте информацию о манге</p>
+<div class="content-head">
+  <div class="title-wrap"><h1>📖 {{ item.base.title }}</h1><p>Редактирование манги</p></div>
+  <a href="javascript:history.back()" class="btn-secondary">← Назад</a>
 </div>
-<div class="form-container">
-  <form method="POST" enctype="multipart/form-data" class="form-wrapper">
-    <div class="form-section">
+<div class="page-body">
+<div class="form-shell">
+  <form method="POST" enctype="multipart/form-data">
+    <div class="form-block">
       <h2>Основная информация</h2>
-      <div class="form-group">
-        <label class="form-label">Название (обязательно)</label>
-        <input type="text" name="title" class="form-control" required value="{{ item.base.title }}">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Обложка</label>
-        <div style="margin-bottom: 1rem;">
-          {% if item.base.cover_image %}
-            {% if item.base.cover_source == 'url' %}
-              <img src="{{ item.base.cover_image }}" alt="{{ item.base.title }}" style="max-width: 150px; border-radius: 8px;">
-            {% else %}
-              <img src="{{ url_for('static', filename='uploads/' + item.base.cover_image) }}" alt="{{ item.base.title }}" style="max-width: 150px; border-radius: 8px;">
-            {% endif %}
+      <div class="form-grid">
+        <div class="field form-col-full">
+          <label>Название <span style="color:var(--danger)">*</span></label>
+          <input type="text" name="title" class="input" required value="{{ item.base.title }}">
+        </div>
+        {% if item.base.cover_image %}
+        <div class="form-col-full">
+          {% if item.base.cover_source == 'url' %}
+            <img class="cover-preview" src="{{ item.base.cover_image }}" alt="{{ item.base.title }}">
+          {% else %}
+            <img class="cover-preview" src="{{ url_for('static', filename='uploads/' + item.base.cover_image) }}" alt="{{ item.base.title }}">
           {% endif %}
         </div>
-        <div class="form-input-group">
-          <input type="file" name="cover_image" class="form-control" accept="image/*">
-          <input type="url" name="cover_url" class="form-control" placeholder="https://..." value="{{ item.base.cover_image if item.base.cover_source == 'url' else '' }}">
+        {% endif %}
+        <div class="field">
+          <label>Новый файл обложки</label>
+          <input type="file" name="cover_image" class="input" accept="image/*">
+        </div>
+        <div class="field">
+          <label>URL обложки</label>
+          <input type="url" name="cover_url" class="input" placeholder="https://..." value="{{ item.base.cover_image if item.base.cover_source == 'url' else '' }}">
         </div>
       </div>
     </div>
-    <div class="form-section">
+    <div class="form-block">
       <h2>Параметры манги</h2>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Тип манги (обязательно)</label>
-          <select name="manga_type" class="form-control" required>
-            <option value="">-- Выберите тип --</option>
+      <div class="form-grid">
+        <div class="field">
+          <label>Тип <span style="color:var(--danger)">*</span></label>
+          <select name="manga_type" class="select-input" required>
             <option value="манга" {% if item.data.manga_type == 'манга' %}selected{% endif %}>Манга</option>
             <option value="манхва" {% if item.data.manga_type == 'манхва' %}selected{% endif %}>Манхва</option>
             <option value="маньхуа" {% if item.data.manga_type == 'маньхуа' %}selected{% endif %}>Маньхуа</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">Количество глав (обязательно)</label>
-          <input type="number" name="chapters" class="form-control" required min="0" value="{{ item.data.chapters }}">
+        <div class="field">
+          <label>Количество глав <span style="color:var(--danger)">*</span></label>
+          <input type="number" name="chapters" class="input" required min="0" value="{{ item.data.chapters }}">
         </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Статус (обязательно)</label>
-          <select name="status" class="form-control" required>
-            <option value="">-- Выберите статус --</option>
+        <div class="field">
+          <label>Статус <span style="color:var(--danger)">*</span></label>
+          <select name="status" class="select-input" required>
             <option value="планирую" {% if item.data.status == 'планирую' %}selected{% endif %}>Планирую</option>
             <option value="читаю" {% if item.data.status == 'читаю' %}selected{% endif %}>Читаю</option>
             <option value="прочитано" {% if item.data.status == 'прочитано' %}selected{% endif %}>Прочитано</option>
             <option value="не дочитал" {% if item.data.status == 'не дочитал' %}selected{% endif %}>Не дочитал</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">Повторные прочтения</label>
-          <input type="number" name="rerereads" class="form-control" min="0" value="{{ item.data.rerereads }}">
+        <div class="field">
+          <label>Повторные прочтения</label>
+          <input type="number" name="rerereads" class="input" min="0" value="{{ item.data.rerereads }}">
         </div>
-      </div>
-      <div id="incomplete-section" style="display: none;">
-        <div class="form-group">
-          <label class="form-label">Прочитано глав</label>
-          <input type="number" name="read_chapters" class="form-control" min="0" value="{{ item.data.read_chapters or 0 }}">
+        <div class="field form-col-full" id="read-section" style="display:{% if item.data.status == 'не дочитал' %}block{% else %}none{% endif %};">
+          <label>Прочитано глав</label>
+          <input type="number" name="read_chapters" class="input" min="0" value="{{ item.data.read_chapters or 0 }}">
         </div>
-      </div>
-      <div style="background: var(--color-secondary); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
-        <p style="margin: 0; color: var(--color-text-secondary); font-size: 0.9rem;">💡 Часы рассчитываются автоматически: 1 глава = 5 мин</p>
+        <div class="form-col-full">
+          <div class="inline-note">💡 <strong>Часы считаются автоматически:</strong> 1 глава ≈ 5 минут</div>
+        </div>
       </div>
     </div>
-    <div class="form-section">
+    <div class="form-block">
       <h2>Дополнительно</h2>
-      <div class="form-group">
-        <label class="form-label">Источник (ссылка)</label>
-        <input type="url" name="source_url" class="form-control" placeholder="https://..." value="{{ item.base.source_url or '' }}">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Заметки</label>
-        <textarea name="notes" class="form-control" rows="3">{{ item.data.notes or '' }}</textarea>
+      <div class="form-grid">
+        <div class="field">
+          <label>Источник (ссылка)</label>
+          <input type="url" name="source_url" class="input" placeholder="https://..." value="{{ item.base.source_url or '' }}">
+        </div>
+        <div class="field form-col-full">
+          <label>Заметки</label>
+          <textarea name="notes" class="textarea-input">{{ item.data.notes or '' }}</textarea>
+        </div>
       </div>
     </div>
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary btn-lg">Сохранить</button>
-      <a href="javascript:history.back()" class="btn btn-secondary btn-lg">Отмена</a>
+      <button type="submit" class="btn-primary">Сохранить</button>
+      <a href="javascript:history.back()" class="btn-secondary">Отмена</a>
+      <form method="POST" action="{{ url_for('delete_item', item_id=item.base.id) }}" onsubmit="return confirm('Удалить эту запись?');" style="margin-left:auto;">
+        <button type="submit" class="btn-danger">Удалить</button>
+      </form>
     </div>
   </form>
 </div>
-<style>
-  .form-container { max-width: 700px; margin: 0 auto; }
-  .form-wrapper { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 2rem; }
-  .form-section { margin-bottom: 2.5rem; }
-  .form-section h2 { font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--color-text); padding-bottom: 1rem; border-bottom: 1px solid var(--color-border); }
-  .form-group { margin-bottom: 1.5rem; }
-  .form-label { display: block; margin-bottom: 0.75rem; font-weight: 600; font-size: 0.95rem; color: var(--color-text); }
-  .form-control { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-background); color: var(--color-text); font-size: 0.95rem; transition: all var(--duration-fast) var(--ease-standard); }
-  .form-control:hover { border-color: var(--color-primary); }
-  .form-control:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2); }
-  textarea.form-control { resize: vertical; font-family: var(--font-family-base); }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .form-input-group { display: flex; flex-direction: column; gap: 0.75rem; }
-  .form-input-group .form-control { margin: 0; }
-  .form-actions { display: flex; gap: 1rem; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--color-border); }
-  .form-actions .btn { flex: 1; }
-  @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } .form-wrapper { padding: 1.5rem; } }
-  @media (max-width: 480px) { .form-actions { flex-direction: column; } }
-</style>
+</div>
+{% endblock %}
+{% block extra_scripts %}
 <script>
-  const statusSelect = document.querySelector('select[name="status"]');
-  const incompleteSection = document.getElementById('incomplete-section');
-  function updateIncompleteFields() {
-    incompleteSection.style.display = statusSelect.value === 'не дочитал' ? 'block' : 'none';
-  }
-  statusSelect.addEventListener('change', updateIncompleteFields);
-  updateIncompleteFields();
+const s = document.querySelector('select[name="status"]');
+const r = document.getElementById('read-section');
+s.addEventListener('change', () => { r.style.display = s.value === 'не дочитал' ? 'block' : 'none'; });
 </script>
 {% endblock %}

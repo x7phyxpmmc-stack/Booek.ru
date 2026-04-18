@@ -1,42 +1,119 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Media Tracker{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Booek{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <a href="{{ url_for('dashboard') }}" class="logo">
-                📊 Media Tracker
-            </a>
-            <div class="nav-right">
-                {% if session.get('authenticated') %}
-                    <div class="greeting">
-                        👋 Привет, <strong>wefw!</strong>
-                    </div>
-                    <nav class="header-nav">
-                        <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">Главная</a>
-                        <a href="{{ url_for('statistics') }}" class="nav-link {% if request.endpoint == 'statistics' %}active{% endif %}">Статистика</a>
-                    </nav>
-                    <a href="{{ url_for('logout') }}" class="btn btn-secondary">Выход</a>
-                {% endif %}
-            </div>
-        </div>
-    </header>
+  <!-- TOPBAR -->
+  <div class="shell-top">
+    <div class="topbar">
+      <a href="{{ url_for('dashboard') }}" class="brand">
+        <div class="brand-mark"></div>
+        Booek
+      </a>
+      <nav class="topbar-nav">
+        <a href="{{ url_for('dashboard') }}" class="topbar-nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">Главная</a>
+        <a href="{{ url_for('statistics') }}" class="topbar-nav-link {% if request.endpoint == 'statistics' %}active{% endif %}">Статистика</a>
+      </nav>
+      <div class="top-actions">
+        <button class="pill-btn" onclick="toggleTheme()" aria-label="Переключить тему">
+          <span id="theme-icon">☀️</span>
+        </button>
+        <a href="{{ url_for('logout') }}" class="pill-btn">Выход</a>
+      </div>
+    </div>
+  </div>
 
-    <main>
-        {% block content %}{% endblock %}
+  <!-- LAYOUT -->
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="side-section-label">Навигация</div>
+      <a href="{{ url_for('dashboard') }}" class="side-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+        <span class="side-item-left"><span class="side-icon">🏠</span>Главная</span>
+      </a>
+      <a href="{{ url_for('statistics') }}" class="side-item {% if request.endpoint == 'statistics' %}active{% endif %}">
+        <span class="side-item-left"><span class="side-icon">📊</span>Статистика</span>
+      </a>
+
+      {% if sidebar_categories is defined and sidebar_categories %}
+      <div class="side-section-label">Категории</div>
+      {% for cat in sidebar_categories %}
+      <a href="{{ url_for('view_category', category_id=cat.category.id) }}"
+         class="side-item {% if request.endpoint == 'view_category' and request.view_args.category_id == cat.category.id %}active{% endif %}">
+        <span class="side-item-left">
+          <span class="side-icon">
+            {% if cat.category.type == 'anime' %}✨
+            {% elif cat.category.type == 'manga' %}📖
+            {% elif cat.category.type == 'films' %}🎬
+            {% elif cat.category.type == 'series' %}📺
+            {% elif cat.category.type == 'books' %}📚
+            {% elif cat.category.type == 'games' %}🎮
+            {% else %}📦{% endif %}
+          </span>
+          {{ cat.category.name|remove_emoji }}
+        </span>
+        <span class="side-badge">{{ cat.count }}</span>
+      </a>
+      {% endfor %}
+      {% endif %}
+
+      <div class="side-section-label">Добавить</div>
+      {% set cat_types = [('anime','✨','Аниме'),('manga','📖','Манга'),('films','🎬','Фильмы'),('series','📺','Сериалы'),('books','📚','Книги'),('games','🎮','Игры')] %}
+      {% for ctype, icon, label in cat_types %}
+      <a href="{{ url_for('add_' + ctype) }}" class="side-item {% if request.endpoint == 'add_' + ctype %}active{% endif %}">
+        <span class="side-item-left"><span class="side-icon">{{ icon }}</span>{{ label }}</span>
+      </a>
+      {% endfor %}
+    </aside>
+
+    <!-- MAIN -->
+    <main class="content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flash-list" style="margin: 16px 28px 0;">
+          {% for category, message in messages %}
+          <li class="flash-item {{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
     </main>
+  </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            document.body.style.opacity = '1';
-        });
-    </script>
+  <script>
+    // Theme management
+    (function() {
+      const saved = localStorage.getItem('booek-theme') ||
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', saved);
+      updateThemeIcon(saved);
+    })();
+
+    function updateThemeIcon(theme) {
+      const el = document.getElementById('theme-icon');
+      if (el) el.textContent = theme === 'dark' ? '🌙' : '☀️';
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('booek-theme', next);
+      updateThemeIcon(next);
+    }
+  </script>
+  {% block extra_scripts %}{% endblock %}
 </body>
 </html>

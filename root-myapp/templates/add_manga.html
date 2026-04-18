@@ -1,143 +1,94 @@
 {% extends "base.html" %}
-
-{% block title %}Добавить мангу - Media Tracker{% endblock %}
-
+{% block title %}Добавить мангу — Booek{% endblock %}
 {% block content %}
-
-<div class="section-header">
-  <h1>Добавить мангу</h1>
-  <p>Добавь новую мангу в свою библиотеку</p>
+<div class="content-head">
+  <div class="title-wrap"><h1>📖 Добавить мангу</h1><p>Добавь новую мангу в медиатеку</p></div>
+  <a href="javascript:history.back()" class="btn-secondary">← Назад</a>
 </div>
-
-<div class="form-container">
-  <form method="POST" enctype="multipart/form-data" class="form-wrapper">
-    
-    <!-- ОСНОВНАЯ ИНФОРМАЦИЯ -->
-    <div class="form-section">
+<div class="page-body">
+<div class="form-shell">
+  <form method="POST" enctype="multipart/form-data">
+    <div class="form-block">
       <h2>Основная информация</h2>
-      
-      <div class="form-group">
-        <label class="form-label">Название (обязательно)</label>
-        <input type="text" name="title" class="form-control" required placeholder="Введите название манги">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Обложка</label>
-        <div class="form-input-group">
-          <input type="file" name="cover_image" class="form-control" accept="image/*">
-          <small style="color: var(--color-text-secondary); display: block; margin-top: 0.5rem;">или укажите URL обложки:</small>
-          <input type="url" name="cover_url" class="form-control" placeholder="https://example.com/cover.jpg">
+      <div class="form-grid">
+        <div class="field form-col-full">
+          <label>Название <span style="color:var(--danger)">*</span></label>
+          <input type="text" name="title" class="input" required placeholder="Введите название манги">
+        </div>
+        <div class="field">
+          <label>Файл обложки</label>
+          <input type="file" name="cover_image" class="input" accept="image/*">
+        </div>
+        <div class="field">
+          <label>URL обложки</label>
+          <input type="url" name="cover_url" class="input" placeholder="https://example.com/cover.jpg">
         </div>
       </div>
     </div>
-
-    <!-- ПАРАМЕТРЫ МАНГИ -->
-    <div class="form-section">
+    <div class="form-block">
       <h2>Параметры манги</h2>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Тип манги (обязательно)</label>
-          <select name="manga_type" class="form-control" required>
-            <option value="">-- Выберите тип --</option>
-            <option value="манга">Манга</option>
-            <option value="манхва">Манхва</option>
-            <option value="маньхуа">Маньхуа</option>
+      <div class="form-grid">
+        <div class="field">
+          <label>Тип <span style="color:var(--danger)">*</span></label>
+          <select name="manga_type" class="select-input" required>
+            <option value="">— Выберите тип —</option>
+            <option value="манга">Манга (японская)</option>
+            <option value="манхва">Манхва (корейская)</option>
+            <option value="маньхуа">Маньхуа (китайская)</option>
           </select>
         </div>
-
-        <div class="form-group">
-          <label class="form-label">Количество глав (обязательно)</label>
-          <input type="number" name="chapters" class="form-control" required min="0" placeholder="0">
+        <div class="field">
+          <label>Количество глав <span style="color:var(--danger)">*</span></label>
+          <input type="number" name="chapters" class="input" required min="0" placeholder="0">
         </div>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Статус (обязательно)</label>
-          <select name="status" class="form-control" required>
-            <option value="">-- Выберите статус --</option>
+        <div class="field">
+          <label>Статус <span style="color:var(--danger)">*</span></label>
+          <select name="status" class="select-input" required>
+            <option value="">— Выберите статус —</option>
             <option value="планирую">Планирую</option>
             <option value="читаю">Читаю</option>
             <option value="прочитано">Прочитано</option>
             <option value="не дочитал">Не дочитал</option>
           </select>
         </div>
-
-        <div class="form-group">
-          <label class="form-label">Повторные прочтения</label>
-          <input type="number" name="rerereads" class="form-control" min="0" value="0" placeholder="0">
+        <div class="field">
+          <label>Повторные прочтения</label>
+          <input type="number" name="rerereads" class="input" min="0" value="0">
         </div>
-      </div>
-
-      <div id="incomplete-section" style="display: none;">
-        <div class="form-group">
-          <label class="form-label">Прочитано глав</label>
-          <input type="number" name="read_chapters" class="form-control" min="0" placeholder="0">
+        <div class="field form-col-full" id="read-section" style="display:none;">
+          <label>Прочитано глав</label>
+          <input type="number" name="read_chapters" class="input" min="0" placeholder="0">
         </div>
-      </div>
-
-      <div style="background: var(--color-secondary); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
-        <p style="margin: 0; color: var(--color-text-secondary); font-size: 0.9rem;">
-          💡 <strong>Часы рассчитываются автоматически:</strong><br>
-          1 глава = 5 мин
-        </p>
+        <div class="form-col-full">
+          <div class="inline-note">💡 <strong>Часы считаются автоматически:</strong> 1 глава ≈ 5 минут</div>
+        </div>
       </div>
     </div>
-
-    <!-- ДОПОЛНИТЕЛЬНО -->
-    <div class="form-section">
+    <div class="form-block">
       <h2>Дополнительно</h2>
-
-      <div class="form-group">
-        <label class="form-label">Источник (ссылка на мангу)</label>
-        <input type="url" name="source_url" class="form-control" placeholder="https://...">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Заметки</label>
-        <textarea name="notes" class="form-control" rows="3" placeholder="Напишите ваши впечатления..."></textarea>
+      <div class="form-grid">
+        <div class="field">
+          <label>Источник (ссылка)</label>
+          <input type="url" name="source_url" class="input" placeholder="https://...">
+        </div>
+        <div class="field form-col-full">
+          <label>Заметки</label>
+          <textarea name="notes" class="textarea-input" placeholder="Твои впечатления…"></textarea>
+        </div>
       </div>
     </div>
-
-    <!-- КНОПКИ -->
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary btn-lg">Добавить</button>
-      <a href="javascript:history.back()" class="btn btn-secondary btn-lg">Отмена</a>
+      <button type="submit" class="btn-primary">Добавить мангу</button>
+      <a href="javascript:history.back()" class="btn-secondary">Отмена</a>
     </div>
   </form>
 </div>
-
-<style>
-  .form-container { max-width: 700px; margin: 0 auto; }
-  .form-wrapper { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 2rem; }
-  .form-section { margin-bottom: 2.5rem; }
-  .form-section h2 { font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--color-text); padding-bottom: 1rem; border-bottom: 1px solid var(--color-border); }
-  .form-group { margin-bottom: 1.5rem; }
-  .form-label { display: block; margin-bottom: 0.75rem; font-weight: 600; font-size: 0.95rem; color: var(--color-text); }
-  .form-control { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-background); color: var(--color-text); font-size: 0.95rem; transition: all var(--duration-fast) var(--ease-standard); }
-  .form-control:hover { border-color: var(--color-primary); }
-  .form-control:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2); }
-  textarea.form-control { resize: vertical; font-family: var(--font-family-base); }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .form-input-group { display: flex; flex-direction: column; gap: 0.75rem; }
-  .form-input-group .form-control { margin: 0; }
-  .form-actions { display: flex; gap: 1rem; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--color-border); }
-  .form-actions .btn { flex: 1; }
-  @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } .form-wrapper { padding: 1.5rem; } }
-  @media (max-width: 480px) { .form-actions { flex-direction: column; } }
-</style>
-
+</div>
+{% endblock %}
+{% block extra_scripts %}
 <script>
-  const statusSelect = document.querySelector('select[name="status"]');
-  const incompleteSection = document.getElementById('incomplete-section');
-
-  function updateIncompleteFields() {
-    incompleteSection.style.display = statusSelect.value === 'не дочитал' ? 'block' : 'none';
-  }
-
-  statusSelect.addEventListener('change', updateIncompleteFields);
-  updateIncompleteFields();
+const s = document.querySelector('select[name="status"]');
+const r = document.getElementById('read-section');
+s.addEventListener('change', () => { r.style.display = s.value === 'не дочитал' ? 'block' : 'none'; });
 </script>
-
 {% endblock %}

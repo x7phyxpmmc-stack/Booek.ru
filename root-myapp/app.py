@@ -416,6 +416,57 @@ def logout():
 # DASHBOARD & STATS
 # ========================================================================
 
+def get_recent_items(limit=6):
+    """Возвращает последние добавленные записи (по убыванию id)"""
+    conn = get_db()
+    recent_base = conn.execute(
+        'SELECT id FROM items_base ORDER BY id DESC LIMIT ?', (limit,)
+    ).fetchall()
+    conn.close()
+
+    result = []
+    for row in recent_base:
+        item = get_item_full(row['id'])
+        if item:
+            # Определяем статус записи
+            status = ''
+            d = item['data']
+            t = item['type']
+            if t == 'anime':
+                status = d['status']
+            elif t == 'manga':
+                status = d['status']
+            elif t == 'films':
+                status = d['status']
+            elif t == 'series':
+                status = d['status']
+            elif t == 'books':
+                status = d['status']
+            elif t == 'games':
+                status = d['status']
+
+            result.append({
+                'base': item['base'],
+                'type': t,
+                'cat_name': item['cat']['name'],
+                'status': status,
+                'hours': round(calc_item_hours(item), 1)
+            })
+    return result
+
+
+def get_top_category(categories_stats):
+    """Возвращает топ-категорию по часам"""
+    if not categories_stats:
+        return None
+    top = max(categories_stats, key=lambda x: x['hours'])
+    return {
+        'name': top['category']['name'],
+        'hours': top['hours'],
+        'count': top['count']
+    }
+
+
 @app.route('/')
 @auth_required
 def dashboard():
@@ -431,7 +482,19 @@ def dashboard():
         total_i += len(items)
         stats.append({'category': cat, 'count': len(items), 'hours': round(h, 1)})
     conn.close()
-    return render_template('dashboard.html', categories=stats, total_hours=round(total_h, 1), total_items=total_i)
+
+    recent_items = get_recent_items(6)
+    top_category = get_top_category(stats)
+
+    return render_template(
+        'dashboard.html',
+        categories=stats,
+        total_hours=round(total_h, 1),
+        total_items=total_i,
+        recent_items=recent_items,
+        top_category=top_category,
+        sidebar_categories=stats
+    )
 
 @app.route('/statistics')
 @auth_required
@@ -452,7 +515,14 @@ def statistics():
     # Получаю статистику по типам
     type_statistics = get_type_statistics()
 
-    return render_template('statistics.html', categories=stats, total_hours=round(total_h, 1), total_items=total_i, type_statistics=type_statistics)
+    return render_template(
+        'statistics.html',
+        categories=stats,
+        total_hours=round(total_h, 1),
+        total_items=total_i,
+        type_statistics=type_statistics,
+        sidebar_categories=stats
+    )
 
 # ========================================================================
 # CATEGORY VIEW
@@ -484,7 +554,22 @@ def view_category(category_id):
             })
     conn.close()
 
-    return render_template('category.html', category=cat, items=items_with_data, stats={'total_items': len(items_with_data), 'total_hours': round(total_hours_cat, 1)})
+    # Sidebar categories
+    conn2 = get_db()
+    all_cats = conn2.execute('SELECT * FROM categories ORDER BY name').fetchall()
+    sidebar_stats = []
+    for c in all_cats:
+        cnt = conn2.execute('SELECT COUNT(*) FROM items_base WHERE category_id = ?', (c['id'],)).fetchone()[0]
+        sidebar_stats.append({'category': c, 'count': cnt, 'hours': 0})
+    conn2.close()
+
+    return render_template(
+        'category.html',
+        category=cat,
+        items=items_with_data,
+        stats={'total_items': len(items_with_data), 'total_hours': round(total_hours_cat, 1)},
+        sidebar_categories=sidebar_stats
+    )
 
 # ========================================================================
 # ADD ITEM (6 типов) - ИСПРАВЛЕННАЯ ВЕРСИЯ (ПРАВИЛЬНЫЙ ORDER)
@@ -617,7 +702,15 @@ def add_item(cat_type):
 
         return redirect(url_for('view_category', category_id=cat['id']))
 
-    return render_template(f'add_{cat_type}.html', category=cat)
+    # Sidebar
+    conn3 = get_db()
+    all_cats3 = conn3.execute('SELECT * FROM categories ORDER BY name').fetchall()
+    sb3 = []
+    for c in all_cats3:
+        cnt = conn3.execute('SELECT COUNT(*) FROM items_base WHERE category_id = ?', (c['id'],)).fetchone()[0]
+        sb3.append({'category': c, 'count': cnt, 'hours': 0})
+    conn3.close()
+    return render_template(f'add_{cat_type}.html', category=cat, sidebar_categories=sb3)
 
 # ========================================================================
 # EDIT ITEM - ПОЛНАЯ ВЕРСИЯ С REWATCHES/REREREADS
@@ -759,7 +852,15 @@ def edit_item(item_id):
 
         return redirect(url_for('view_category', category_id=item['base']['category_id']))
 
-    return render_template(f'edit_{item["type"]}.html', item=item)
+    # Sidebar
+    conn4 = get_db()
+    all_cats4 = conn4.execute('SELECT * FROM categories ORDER BY name').fetchall()
+    sb4 = []
+    for c in all_cats4:
+        cnt = conn4.execute('SELECT COUNT(*) FROM items_base WHERE category_id = ?', (c['id'],)).fetchone()[0]
+        sb4.append({'category': c, 'count': cnt, 'hours': 0})
+    conn4.close()
+    return render_template(f'edit_{item["type"]}.html', item=item, sidebar_categories=sb4)
 
 # ========================================================================
 # AJAX: БЫСТРОЕ ОБНОВЛЕНИЕ СТАТУСА (НОВОЕ!)

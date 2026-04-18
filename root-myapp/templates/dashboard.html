@@ -1,66 +1,118 @@
 {% extends "base.html" %}
 
-{% block title %}Главная - Media Tracker{% endblock %}
+{% block title %}Главная — Booek{% endblock %}
 
 {% block content %}
-
-<div class="section-header">
-  <h1>Ваша медиатека</h1>
-  <p>Отслеживайте, сколько времени вы провели за просмотром и чтением</p>
-</div>
-
-<div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-value">{{ total_items }}</div>
-    <div class="stat-label">Всего элементов</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value">{{ total_hours }}</div>
-    <div class="stat-label">Часов потрачено</div>
+<div class="content-head">
+  <div class="title-wrap">
+    <h1>Медиатека</h1>
+    <p>Отслеживай время и прогресс по всем категориям</p>
   </div>
 </div>
 
-<div style="margin-top: 3rem;">
-  <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Категории</h2>
-  
-  <div class="categories-grid">
-    {% for cat in categories %}
-      <a href="{{ url_for('view_category', category_id=cat.category.id) }}" class="category-card" style="text-decoration: none; color: inherit;">
-        <div class="category-icon">
-          {% if cat.category.type == 'anime' %}
-            🎬
-          {% elif cat.category.type == 'manga' %}
-            📖
-          {% elif cat.category.type == 'films' %}
-            🎥
-          {% elif cat.category.type == 'series' %}
-            📺
-          {% elif cat.category.type == 'books' %}
-            📚
-          {% elif cat.category.type == 'games' %}
-            🎮
+<div class="page-body">
+
+  <!-- KPI -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-label">Всего записей</div>
+      <div class="kpi-value">{{ total_items }}</div>
+      <div class="kpi-sub">во всей медиатеке</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Часов потрачено</div>
+      <div class="kpi-value">{{ total_hours }}</div>
+      <div class="kpi-sub">суммарно по всем категориям</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Топ-категория</div>
+      <div class="kpi-value" style="font-size:22px;">{{ top_category.name if top_category else '—' }}</div>
+      <div class="kpi-sub">{{ top_category.hours }} ч · {{ top_category.count }} записей</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Категорий</div>
+      <div class="kpi-value">{{ categories|length }}</div>
+      <div class="kpi-sub">разделов медиатеки</div>
+    </div>
+  </div>
+
+  {% if recent_items %}
+  <!-- RECENTLY ADDED -->
+  <div class="card mb-4">
+    <div class="card-head">
+      <div>
+        <h2>Недавно добавленные</h2>
+        <p>Последние записи в медиатеке</p>
+      </div>
+    </div>
+    <div class="item-list">
+      {% for item in recent_items %}
+      <div class="item-row">
+        {% if item.base.cover_image %}
+          {% if item.base.cover_source == 'url' %}
+            <img class="item-poster" src="{{ item.base.cover_image }}" alt="{{ item.base.title }}" loading="lazy">
           {% else %}
-            📦
+            <img class="item-poster" src="{{ url_for('static', filename='uploads/' + item.base.cover_image) }}" alt="{{ item.base.title }}" loading="lazy">
+          {% endif %}
+        {% else %}
+          <div class="item-poster"></div>
+        {% endif %}
+        <div>
+          <div class="item-meta-title">{{ item.base.title }}</div>
+          <div class="item-meta-sub">{{ item.cat_name }} · {{ item.hours }} ч</div>
+        </div>
+        <div>
+          {% if item.status in ['просмотрено', 'прочитано', 'прошёл целиком'] %}
+            <span class="tag success">{{ item.status|capitalize }}</span>
+          {% elif item.status in ['смотрю', 'читаю', 'играю'] %}
+            <span class="tag primary">{{ item.status|capitalize }}</span>
+          {% elif item.status in ['планирую'] %}
+            <span class="tag warning">В планах</span>
+          {% else %}
+            <span class="tag">{{ item.status|capitalize }}</span>
           {% endif %}
         </div>
-	<div class="category-name">{{ cat.category.name|remove_emoji }}</div>
-        <div class="category-meta">
-          <div>
-            <div style="font-size: 1.2rem; font-weight: 700; color: var(--color-primary);">{{ cat.count }}</div>
-            <div style="font-size: 0.8rem; color: var(--color-text-secondary);">элементов</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- CATEGORIES GRID -->
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <h2>Категории</h2>
+        <p>Перейди в категорию, чтобы посмотреть все записи</p>
+      </div>
+    </div>
+    <div class="cats-grid">
+      {% for cat in categories %}
+      <a href="{{ url_for('view_category', category_id=cat.category.id) }}" class="cat-card">
+        <div class="cat-icon">
+          {% if cat.category.type == 'anime' %}✨
+          {% elif cat.category.type == 'manga' %}📖
+          {% elif cat.category.type == 'films' %}🎬
+          {% elif cat.category.type == 'series' %}📺
+          {% elif cat.category.type == 'books' %}📚
+          {% elif cat.category.type == 'games' %}🎮
+          {% else %}📦{% endif %}
+        </div>
+        <div class="cat-name">{{ cat.category.name|remove_emoji }}</div>
+        <div class="cat-meta">
+          <div class="cat-stat">
+            <div class="cat-stat-val">{{ cat.count }}</div>
+            <div class="cat-stat-lbl">записей</div>
           </div>
-          <div>
-            <div style="font-size: 1.2rem; font-weight: 700; color: var(--color-primary);">{{ cat.hours }}</div>
-            <div style="font-size: 0.8rem; color: var(--color-text-secondary);">часов</div>
+          <div class="cat-stat">
+            <div class="cat-stat-val">{{ cat.hours }}</div>
+            <div class="cat-stat-lbl">часов</div>
           </div>
         </div>
       </a>
-    {% endfor %}
+      {% endfor %}
+    </div>
   </div>
-</div>
 
-<div style="margin-top: 3rem; text-align: center; color: var(--color-text-secondary); font-size: 0.9rem;">
-  <p>💡 Кликните на категорию, чтобы просмотреть все элементы</p>
 </div>
-
 {% endblock %}
