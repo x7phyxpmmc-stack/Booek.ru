@@ -22,108 +22,233 @@
 
 <div class="page-body">
 
-  <!-- SEARCH & FILTERS -->
-  <div class="controls">
-    <div class="search">
+  <!-- TOOLBAR: поиск, фильтры, вид, сортировка -->
+  <div class="controls" style="flex-wrap:wrap;gap:8px;">
+    <div class="search" style="flex:1;min-width:200px;">
       <span class="search-icon">⌕</span>
-      <input type="text" id="searchInput" placeholder="Поиск по названию…" oninput="filterTable()">
+      <input type="text" id="searchInput" placeholder="Поиск по названию…" oninput="applyFilters()">
     </div>
-    <button class="chip active" onclick="filterStatus('all', this)">Все</button>
-    {% if category.type in ['anime', 'series'] %}
-    <button class="chip" onclick="filterStatus('просмотрено', this)">Просмотрено</button>
-    <button class="chip" onclick="filterStatus('смотрю', this)">Смотрю</button>
-    <button class="chip" onclick="filterStatus('планирую', this)">Планирую</button>
-    <button class="chip" onclick="filterStatus('не досмотрел', this)">Не досмотрел</button>
-    {% elif category.type == 'films' %}
-    <button class="chip" onclick="filterStatus('просмотрено', this)">Просмотрено</button>
-    <button class="chip" onclick="filterStatus('смотрю', this)">Смотрю</button>
-    <button class="chip" onclick="filterStatus('планирую', this)">Планирую</button>
-    {% elif category.type in ['manga', 'books'] %}
-    <button class="chip" onclick="filterStatus('прочитано', this)">Прочитано</button>
-    <button class="chip" onclick="filterStatus('читаю', this)">Читаю</button>
-    <button class="chip" onclick="filterStatus('планирую', this)">Планирую</button>
-    {% elif category.type == 'games' %}
-    <button class="chip" onclick="filterStatus('прошёл целиком', this)">Прошёл целиком</button>
-    <button class="chip" onclick="filterStatus('играю', this)">Играю</button>
-    <button class="chip" onclick="filterStatus('планирую', this)">Планирую</button>
-    {% endif %}
+
+    <!-- Статусные фильтры -->
+    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+      <button class="chip active" onclick="filterStatus('all', this)">Все</button>
+      {% if category.type in ['anime', 'series'] %}
+      <button class="chip" onclick="filterStatus('просмотрено', this)">Просмотрено</button>
+      <button class="chip" onclick="filterStatus('смотрю', this)">Смотрю</button>
+      <button class="chip" onclick="filterStatus('планирую', this)">Планирую</button>
+      <button class="chip" onclick="filterStatus('не досмотрел', this)">Не досмотрел</button>
+      {% elif category.type == 'films' %}
+      <button class="chip" onclick="filterStatus('просмотрено', this)">Просмотрено</button>
+      <button class="chip" onclick="filterStatus('смотрю', this)">Смотрю</button>
+      <button class="chip" onclick="filterStatus('планирую', this)">Планирую</button>
+      {% elif category.type in ['manga', 'books'] %}
+      <button class="chip" onclick="filterStatus('прочитано', this)">Прочитано</button>
+      <button class="chip" onclick="filterStatus('читаю', this)">Читаю</button>
+      <button class="chip" onclick="filterStatus('планирую', this)">Планирую</button>
+      {% elif category.type == 'games' %}
+      <button class="chip" onclick="filterStatus('прошёл целиком', this)">Прошёл</button>
+      <button class="chip" onclick="filterStatus('играю', this)">Играю</button>
+      <button class="chip" onclick="filterStatus('планирую', this)">Планирую</button>
+      {% endif %}
+    </div>
+
+    <!-- Сортировка + вид -->
+    <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
+      <select id="sortSelect" class="select-input" style="height:36px;padding:0 10px;font-size:13px;min-width:160px;" onchange="applyFilters()">
+        <option value="default">По умолчанию</option>
+        <option value="alpha_asc">А → Я</option>
+        <option value="alpha_desc">Я → А</option>
+        <option value="hours_desc">Часы ↓</option>
+        <option value="hours_asc">Часы ↑</option>
+      </select>
+
+      <!-- View toggle -->
+      <div class="view-toggle">
+        <button class="view-btn" id="viewCards" onclick="setView('cards')" title="Крупные карточки">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="1" y="9" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="9" y="9" width="6" height="6" rx="1.5" fill="currentColor"/></svg>
+        </button>
+        <button class="view-btn" id="viewCompact" onclick="setView('compact')" title="Компактные карточки">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="4" height="4" rx="1" fill="currentColor"/><rect x="7" y="1" width="4" height="4" rx="1" fill="currentColor"/><rect x="13" y="1" width="2" height="4" rx="1" fill="currentColor"/><rect x="1" y="7" width="4" height="4" rx="1" fill="currentColor"/><rect x="7" y="7" width="4" height="4" rx="1" fill="currentColor"/><rect x="13" y="7" width="2" height="4" rx="1" fill="currentColor"/><rect x="1" y="13" width="4" height="2" rx="1" fill="currentColor"/><rect x="7" y="13" width="4" height="2" rx="1" fill="currentColor"/></svg>
+        </button>
+        <button class="view-btn active" id="viewList" onclick="setView('list')" title="Таблица">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="2" rx="1" fill="currentColor"/><rect x="1" y="7" width="14" height="2" rx="1" fill="currentColor"/><rect x="1" y="12" width="14" height="2" rx="1" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </div>
   </div>
 
   {% if items %}
-  <div class="table-wrap">
-    <table id="itemsTable">
-      <thead>
-        <tr>
-          <th>Название</th>
-          <th>Статус</th>
-          <th>Часы</th>
-          {% if category.type == 'anime' %}<th>Серии</th><th>Тип</th>
-          {% elif category.type == 'manga' %}<th>Главы</th><th>Тип</th>
-          {% elif category.type == 'films' %}<th>Длит.</th>
-          {% elif category.type == 'series' %}<th>Серии</th>
-          {% elif category.type == 'books' %}<th>Стр.</th><th>Тип</th>
-          {% elif category.type == 'games' %}
-          {% endif %}
-          <th>Действия</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in items %}
-        <tr data-status="{{ item.data.status|lower }}">
-          <td>
-            <div class="td-title">
-              {% if item.base.cover_image %}
-                {% if item.base.cover_source == 'url' %}
-                  <img src="{{ item.base.cover_image }}" alt="" style="width:28px;height:38px;border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:8px;">
-                {% else %}
-                  <img src="{{ url_for('static', filename='uploads/' + item.base.cover_image) }}" alt="" style="width:28px;height:38px;border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:8px;">
+
+  <!-- ======== VIEW: TABLE ======== -->
+  <div id="view-list">
+    <div class="table-wrap">
+      <table id="itemsTable">
+        <thead>
+          <tr>
+            <th>Название</th>
+            <th>Статус</th>
+            <th>Часы</th>
+            {% if category.type == 'anime' %}<th>Серии</th><th>Тип</th>
+            {% elif category.type == 'manga' %}<th>Главы</th><th>Тип</th>
+            {% elif category.type == 'films' %}<th>Длит.</th>
+            {% elif category.type == 'series' %}<th>Серии</th>
+            {% elif category.type == 'books' %}<th>Стр.</th><th>Тип</th>
+            {% endif %}
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          {% for item in items %}
+          <tr class="item-entry"
+              data-status="{{ item.data.status|lower }}"
+              data-title="{{ item.base.title|lower }}"
+              data-hours="{{ item.hours }}">
+            <td>
+              <div class="td-title">
+                {% if item.base.cover_image %}
+                  {% if item.base.cover_source == 'url' %}
+                    <img src="{{ item.base.cover_image }}" alt="" style="width:28px;height:38px;border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:8px;">
+                  {% else %}
+                    <img src="{{ url_for('static', filename='uploads/' + item.base.cover_image) }}" alt="" style="width:28px;height:38px;border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:8px;">
+                  {% endif %}
                 {% endif %}
+                {{ item.base.title }}
+              </div>
+              {% if item.base.source_url %}
+              <div style="margin-top:2px;"><a href="{{ item.base.source_url }}" target="_blank" rel="noopener" style="font-size:12px;color:var(--text-faint);">Источник ↗</a></div>
               {% endif %}
-              {{ item.base.title }}
-            </div>
-            {% if item.base.source_url %}
-            <div style="margin-top:2px;"><a href="{{ item.base.source_url }}" target="_blank" rel="noopener" style="font-size:12px;color:var(--text-faint);">Источник ↗</a></div>
+            </td>
+            <td>
+              {% if item.data.status in ['просмотрено', 'прочитано', 'прошёл целиком'] %}
+                <span class="tag success">{{ item.data.status|capitalize }}</span>
+              {% elif item.data.status in ['смотрю', 'читаю', 'играю'] %}
+                <span class="tag primary">{{ item.data.status|capitalize }}</span>
+              {% elif item.data.status == 'планирую' %}
+                <span class="tag warning">Планирую</span>
+              {% else %}
+                <span class="tag">{{ item.data.status|capitalize }}</span>
+              {% endif %}
+            </td>
+            <td><strong>{{ item.hours }}</strong></td>
+            {% if category.type == 'anime' %}
+            <td>{{ item.data.episodes }}</td><td><span class="tag">{{ item.data.anime_type }}</span></td>
+            {% elif category.type == 'manga' %}
+            <td>{{ item.data.chapters }}</td><td><span class="tag">{{ item.data.manga_type }}</span></td>
+            {% elif category.type == 'films' %}
+            <td>{{ item.data.duration }} мин</td>
+            {% elif category.type == 'series' %}
+            <td>{{ item.data.episodes }}</td>
+            {% elif category.type == 'books' %}
+            <td>{{ item.data.pages_duration }}</td><td><span class="tag">{{ item.data.book_type }}</span></td>
             {% endif %}
-          </td>
-          <td>
-            {% if item.data.status in ['просмотрено', 'прочитано', 'прошёл целиком'] %}
-              <span class="tag success">{{ item.data.status|capitalize }}</span>
-            {% elif item.data.status in ['смотрю', 'читаю', 'играю'] %}
-              <span class="tag primary">{{ item.data.status|capitalize }}</span>
-            {% elif item.data.status in ['планирую'] %}
-              <span class="tag warning">Планирую</span>
-            {% else %}
-              <span class="tag">{{ item.data.status|capitalize }}</span>
-            {% endif %}
-          </td>
-          <td><strong>{{ item.hours }}</strong></td>
-          {% if category.type == 'anime' %}
-          <td>{{ item.data.episodes }}</td>
-          <td>{{ item.data.anime_type }}</td>
-          {% elif category.type == 'manga' %}
-          <td>{{ item.data.chapters }}</td>
-          <td>{{ item.data.manga_type }}</td>
-          {% elif category.type == 'films' %}
-          <td>{{ item.data.duration }} мин</td>
-          {% elif category.type == 'series' %}
-          <td>{{ item.data.episodes }}</td>
-          {% elif category.type == 'books' %}
-          <td>{{ item.data.pages_duration }}</td>
-          <td>{{ item.data.book_type }}</td>
-          {% endif %}
-          <td>
-            <div class="td-actions">
-              <a href="{{ url_for('edit_' + item.type, item_id=item.base.id) }}" class="icon-btn" title="Редактировать">✏️</a>
-              <form method="POST" action="{{ url_for('delete_item', item_id=item.base.id) }}" onsubmit="return confirm('Удалить «{{ item.base.title }}»?');" style="display:inline;">
-                <button type="submit" class="icon-btn del" title="Удалить">🗑️</button>
-              </form>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            <td>
+              <div class="td-actions">
+                <a href="{{ url_for('edit_' + item.type, item_id=item.base.id) }}" class="icon-btn" title="Редактировать">✏️</a>
+                <form method="POST" action="{{ url_for('delete_item', item_id=item.base.id) }}" onsubmit="return confirm('Удалить «{{ item.base.title }}»?');" style="display:inline;">
+                  <button type="submit" class="icon-btn del" title="Удалить">🗑️</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
+
+  <!-- ======== VIEW: CARDS (large) ======== -->
+  <div id="view-cards" style="display:none;">
+    <div class="media-cards-grid" id="cardsGrid">
+      {% for item in items %}
+      <div class="media-card item-entry"
+           data-status="{{ item.data.status|lower }}"
+           data-title="{{ item.base.title|lower }}"
+           data-hours="{{ item.hours }}">
+        <a href="{{ url_for('edit_' + item.type, item_id=item.base.id) }}" class="media-card-poster-wrap">
+          {% if item.base.cover_image %}
+            {% if item.base.cover_source == 'url' %}
+              <img class="media-card-poster" src="{{ item.base.cover_image }}" alt="{{ item.base.title }}" loading="lazy">
+            {% else %}
+              <img class="media-card-poster" src="{{ url_for('static', filename='uploads/' + item.base.cover_image) }}" alt="{{ item.base.title }}" loading="lazy">
+            {% endif %}
+          {% else %}
+            <div class="media-card-poster-empty">
+              {% if category.type == 'anime' %}✨{% elif category.type == 'manga' %}📖{% elif category.type == 'films' %}🎬{% elif category.type == 'series' %}📺{% elif category.type == 'books' %}📚{% elif category.type == 'games' %}🎮{% else %}📦{% endif %}
+            </div>
+          {% endif %}
+          <div class="media-card-overlay">
+            {% if item.data.status in ['просмотрено', 'прочитано', 'прошёл целиком'] %}
+              <span class="tag success tag-xs">{{ item.data.status|capitalize }}</span>
+            {% elif item.data.status in ['смотрю', 'читаю', 'играю'] %}
+              <span class="tag primary tag-xs">{{ item.data.status|capitalize }}</span>
+            {% elif item.data.status == 'планирую' %}
+              <span class="tag warning tag-xs">Планирую</span>
+            {% else %}
+              <span class="tag tag-xs">{{ item.data.status|capitalize }}</span>
+            {% endif %}
+          </div>
+        </a>
+        <div class="media-card-body">
+          <div class="media-card-title">{{ item.base.title }}</div>
+          <div class="media-card-meta">
+            <span>{{ item.hours }} ч</span>
+            {% if category.type == 'anime' %}<span>{{ item.data.episodes }} сер.</span>
+            {% elif category.type == 'manga' %}<span>{{ item.data.chapters }} гл.</span>
+            {% elif category.type == 'films' %}<span>{{ item.data.duration }} мин</span>
+            {% elif category.type == 'series' %}<span>{{ item.data.episodes }} сер.</span>
+            {% elif category.type == 'books' %}<span>{{ item.data.pages_duration }} стр.</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ======== VIEW: COMPACT ======== -->
+  <div id="view-compact" style="display:none;">
+    <div class="compact-grid" id="compactGrid">
+      {% for item in items %}
+      <a href="{{ url_for('edit_' + item.type, item_id=item.base.id) }}"
+         class="compact-card item-entry"
+         data-status="{{ item.data.status|lower }}"
+         data-title="{{ item.base.title|lower }}"
+         data-hours="{{ item.hours }}">
+        {% if item.base.cover_image %}
+          {% if item.base.cover_source == 'url' %}
+            <img class="compact-poster" src="{{ item.base.cover_image }}" alt="{{ item.base.title }}" loading="lazy">
+          {% else %}
+            <img class="compact-poster" src="{{ url_for('static', filename='uploads/' + item.base.cover_image) }}" alt="{{ item.base.title }}" loading="lazy">
+          {% endif %}
+        {% else %}
+          <div class="compact-poster compact-poster-empty">
+            {% if category.type == 'anime' %}✨{% elif category.type == 'manga' %}📖{% elif category.type == 'films' %}🎬{% elif category.type == 'series' %}📺{% elif category.type == 'books' %}📚{% elif category.type == 'games' %}🎮{% else %}📦{% endif %}
+          </div>
+        {% endif %}
+        <div class="compact-info">
+          <div class="compact-title">{{ item.base.title }}</div>
+          <div class="compact-sub">{{ item.hours }} ч
+            {% if item.data.status in ['просмотрено', 'прочитано', 'прошёл целиком'] %}
+              · <span style="color:var(--success-text);">✓</span>
+            {% elif item.data.status in ['смотрю', 'читаю', 'играю'] %}
+              · <span style="color:var(--primary);">▶</span>
+            {% elif item.data.status == 'планирую' %}
+              · <span style="color:var(--warning-text);">○</span>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Empty after filter -->
+  <div id="emptyFilter" style="display:none;text-align:center;padding:32px 24px;color:var(--text-muted);">
+    <div style="font-size:32px;margin-bottom:8px;">🔍</div>
+    <div style="font-size:15px;font-weight:600;">Ничего не найдено</div>
+    <div style="font-size:13px;margin-top:4px;">Попробуй изменить фильтр или поисковой запрос</div>
+  </div>
+
   {% else %}
   <div style="text-align:center;padding:48px 24px;color:var(--text-muted);">
     <div style="font-size:40px;margin-bottom:12px;">📭</div>
@@ -138,25 +263,75 @@
 
 {% block extra_scripts %}
 <script>
+// ---- View state (persist in localStorage) ----
+const VIEW_KEY = 'booek-view-{{ category.type }}';
+const SORT_KEY = 'booek-sort-{{ category.type }}';
+let currentView   = localStorage.getItem(VIEW_KEY) || 'list';
 let currentStatus = 'all';
+
+function setView(v) {
+  currentView = v;
+  localStorage.setItem(VIEW_KEY, v);
+  document.getElementById('view-list').style.display    = v === 'list'    ? '' : 'none';
+  document.getElementById('view-cards').style.display   = v === 'cards'   ? '' : 'none';
+  document.getElementById('view-compact').style.display = v === 'compact' ? '' : 'none';
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1)).classList.add('active');
+}
 
 function filterStatus(status, btn) {
   currentStatus = status;
   document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
-  filterTable();
+  applyFilters();
 }
 
-function filterTable() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const rows = document.querySelectorAll('#itemsTable tbody tr');
-  rows.forEach(row => {
-    const title = row.querySelector('.td-title').textContent.toLowerCase();
-    const status = row.dataset.status;
-    const matchQ = title.includes(q);
+function applyFilters() {
+  const q    = document.getElementById('searchInput').value.trim().toLowerCase();
+  const sort = document.getElementById('sortSelect').value;
+  localStorage.setItem(SORT_KEY, sort);
+
+  // Collect all item containers across all views
+  const allEntries = Array.from(document.querySelectorAll('.item-entry'));
+
+  // Match/hide
+  let visibleCount = 0;
+  allEntries.forEach(el => {
+    const title  = el.dataset.title || '';
+    const status = el.dataset.status || '';
+    const matchQ = !q || title.includes(q);
     const matchS = currentStatus === 'all' || status === currentStatus;
-    row.style.display = matchQ && matchS ? '' : 'none';
+    const show   = matchQ && matchS;
+    el.style.display = show ? '' : 'none';
+    if (show) visibleCount++;
+  });
+
+  document.getElementById('emptyFilter').style.display = visibleCount === 0 ? '' : 'none';
+
+  // Sort visible items within each grid/tbody
+  ['tableBody', 'cardsGrid', 'compactGrid'].forEach(id => {
+    const container = document.getElementById(id);
+    if (!container) return;
+    const children = Array.from(container.children).filter(el => el.classList.contains('item-entry'));
+    children.sort((a, b) => {
+      switch (sort) {
+        case 'alpha_asc':  return a.dataset.title.localeCompare(b.dataset.title, 'ru');
+        case 'alpha_desc': return b.dataset.title.localeCompare(a.dataset.title, 'ru');
+        case 'hours_desc': return parseFloat(b.dataset.hours) - parseFloat(a.dataset.hours);
+        case 'hours_asc':  return parseFloat(a.dataset.hours) - parseFloat(b.dataset.hours);
+        default: return 0;
+      }
+    });
+    children.forEach(el => container.appendChild(el));
   });
 }
+
+// Init on load
+(function() {
+  const savedSort = localStorage.getItem(SORT_KEY);
+  if (savedSort) document.getElementById('sortSelect').value = savedSort;
+  setView(currentView);
+  applyFilters();
+})();
 </script>
 {% endblock %}

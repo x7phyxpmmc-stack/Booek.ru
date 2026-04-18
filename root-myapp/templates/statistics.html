@@ -50,13 +50,15 @@
     </div>
   </div>
 
+  <!-- CHARTS: по количеству + по часам -->
   <div class="stats-grid">
-    <!-- BAR CHART by category -->
+
+    <!-- Количество по категориям -->
     <div class="card">
       <div class="card-head">
         <div>
           <h2>По категориям</h2>
-          <p>Количество записей в каждой категории</p>
+          <p>Количество записей</p>
         </div>
       </div>
       {% set max_count = categories|map(attribute='count')|max if categories else 1 %}
@@ -66,14 +68,14 @@
       <div class="bar-row">
         <span class="bar-label">{{ cat.category.name|remove_emoji }}</span>
         <div class="bar-track">
-          <div class="bar-fill" style="width:{{ pct }}%; background:{{ bar_colors[loop.index0 % bar_colors|length] }};"></div>
+          <div class="bar-fill" style="width:{{ pct }}%; background:{{ bar_colors[loop.index0 % 6] }};"></div>
         </div>
         <span class="bar-val">{{ cat.count }}</span>
       </div>
       {% endfor %}
     </div>
 
-    <!-- HOURS by category + donut placeholder -->
+    <!-- Часы по категориям (без дублирующего "Итого" блока) -->
     <div class="card">
       <div class="card-head">
         <div>
@@ -89,37 +91,38 @@
         <div class="bar-track">
           <div class="bar-fill" style="width:{{ pct }}%;"></div>
         </div>
-        <span class="bar-val">{{ cat.hours }}</span>
+        <span class="bar-val">{{ cat.hours }}<span style="font-size:11px;color:var(--text-faint);margin-left:1px;">ч</span></span>
       </div>
       {% endfor %}
-
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-        <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;">Итого часов</div>
-        {% for cat in categories|sort(attribute='hours', reverse=True) %}
-        <div class="legend-item" style="margin-bottom:6px;">
-          <span class="legend-dot" style="background:var(--primary);opacity:{{ 1 - loop.index0 * 0.12 }};"></span>
-          <span>{{ cat.category.name|remove_emoji }}</span>
-          <strong style="color:var(--text);margin-left:auto;">{{ cat.hours }} ч</strong>
-        </div>
-        {% endfor %}
-      </div>
     </div>
   </div>
 
-  <!-- TYPE DISTRIBUTION -->
-  {% if type_statistics %}
+  <!-- СТАТИСТИКА ПО СТАТУСАМ -->
+  {% if status_statistics %}
   <div class="card mt-4">
     <div class="card-head">
       <div>
-        <h2>Распределение по типам</h2>
-        <p>Детализация внутри каждой категории</p>
+        <h2>Статусы</h2>
+        <p>Распределение записей по статусам в каждой категории</p>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
-      {% for cat_key, types in type_statistics.items() %}
-      {% if types %}
-      <div>
-        <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:10px;">
+    <div class="status-stats-grid">
+      {% set status_icons = {
+        'просмотрено': ('✅', 'success'),
+        'прочитано':   ('✅', 'success'),
+        'прошёл целиком': ('✅', 'success'),
+        'смотрю':      ('▶️',  'primary'),
+        'читаю':       ('📖', 'primary'),
+        'играю':       ('🎮', 'primary'),
+        'планирую':    ('🗂️',  'warning'),
+        'не досмотрел': ('⏸️', 'muted'),
+        'не дочитал':   ('⏸️', 'muted'),
+        'прошёл частично': ('⏸️', 'muted')
+      } %}
+      {% for cat_key, statuses in status_statistics.items() %}
+      {% if statuses %}
+      <div class="status-stat-block">
+        <div class="status-stat-title">
           {% if cat_key == 'anime' %}✨ Аниме
           {% elif cat_key == 'manga' %}📖 Манга
           {% elif cat_key == 'books' %}📚 Книги
@@ -128,14 +131,22 @@
           {% elif cat_key == 'games' %}🎮 Игры
           {% else %}{{ cat_key }}{% endif %}
         </div>
-        {% for t in types %}
-        <div class="legend-item" style="margin-bottom:6px;">
-          <span class="legend-dot" style="background:var(--primary);"></span>
-          <span>{{ t.type|capitalize }}</span>
-          <span style="margin-left:auto;display:flex;gap:8px;">
-            <strong style="color:var(--text);">{{ t.count }}</strong>
-            {% if t.hours %}<span style="color:var(--text-muted);">{{ t.hours }}ч</span>{% endif %}
+        {% set total_in_cat = statuses|map(attribute='count')|sum %}
+        {% for s in statuses|sort(attribute='count', reverse=True) %}
+        {% set icon_info = status_icons.get(s.status, ('•', 'muted')) %}
+        <div class="status-stat-row">
+          <span class="status-stat-label">
+            <span class="tag tag-xs {{ icon_info[1] }}">{{ s.status|capitalize }}</span>
           </span>
+          <div class="bar-track" style="flex:1;margin:0 8px;">
+            {% set pct = (s.count / total_in_cat * 100)|round|int if total_in_cat > 0 else 0 %}
+            <div class="bar-fill" style="width:{{ pct }}%;
+              {% if icon_info[1] == 'success' %}background:var(--success);
+              {% elif icon_info[1] == 'primary' %}background:var(--primary);
+              {% elif icon_info[1] == 'warning' %}background:var(--warning);
+              {% else %}background:var(--text-faint);{% endif %}"></div>
+          </div>
+          <span class="bar-val" style="min-width:28px;">{{ s.count }}</span>
         </div>
         {% endfor %}
       </div>
@@ -145,7 +156,109 @@
   </div>
   {% endif %}
 
-  <!-- IMPORT -->
+  <!-- РАСПРЕДЕЛЕНИЕ ПО ТИПАМ (улучшенные отступы) -->
+  {% if type_statistics %}
+  <div class="card mt-4">
+    <div class="card-head">
+      <div>
+        <h2>Распределение по типам</h2>
+        <p>Детализация внутри каждой категории</p>
+      </div>
+    </div>
+    <div class="type-dist-grid">
+      {% for cat_key, types in type_statistics.items() %}
+      {% if types %}
+      <div class="type-dist-block">
+        <div class="type-dist-title">
+          {% if cat_key == 'anime' %}✨ Аниме
+          {% elif cat_key == 'manga' %}📖 Манга
+          {% elif cat_key == 'books' %}📚 Книги
+          {% elif cat_key == 'films' %}🎬 Фильмы
+          {% elif cat_key == 'series' %}📺 Сериалы
+          {% elif cat_key == 'games' %}🎮 Игры
+          {% else %}{{ cat_key }}{% endif %}
+        </div>
+        {% set total_type = types|map(attribute='count')|sum %}
+        {% for t in types %}
+        <div class="type-dist-row">
+          <span class="type-dist-name">{{ t.type|capitalize }}</span>
+          <div style="display:flex;align-items:center;gap:8px;flex:1;">
+            <div class="bar-track" style="flex:1;">
+              {% set pct = (t.count / total_type * 100)|round|int if total_type > 0 else 0 %}
+              <div class="bar-fill" style="width:{{ pct }}%;background:var(--primary);opacity:{{ 0.5 + 0.5 * (loop.index / loop.length) }};"></div>
+            </div>
+            <span style="font-size:13px;font-weight:700;color:var(--text);min-width:22px;text-align:right;">{{ t.count }}</span>
+            {% if t.hours %}
+            <span style="font-size:12px;color:var(--text-faint);min-width:36px;">{{ t.hours }}ч</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- ПРОГРЕСС: соотношение завершено / в процессе / в планах -->
+  {% if progress_stats %}
+  <div class="card mt-4">
+    <div class="card-head">
+      <div>
+        <h2>Прогресс</h2>
+        <p>Сколько завершено, в процессе и в планах</p>
+      </div>
+    </div>
+    <div class="progress-blocks">
+      <div class="progress-kpi">
+        <div class="progress-kpi-val" style="color:var(--success);">{{ progress_stats.done }}</div>
+        <div class="progress-kpi-lbl">Завершено</div>
+      </div>
+      <div class="progress-kpi">
+        <div class="progress-kpi-val" style="color:var(--primary);">{{ progress_stats.in_progress }}</div>
+        <div class="progress-kpi-lbl">В процессе</div>
+      </div>
+      <div class="progress-kpi">
+        <div class="progress-kpi-val" style="color:var(--warning);">{{ progress_stats.planned }}</div>
+        <div class="progress-kpi-lbl">В планах</div>
+      </div>
+      <div class="progress-kpi">
+        <div class="progress-kpi-val" style="color:var(--text-muted);">{{ progress_stats.dropped }}</div>
+        <div class="progress-kpi-lbl">Брошено</div>
+      </div>
+    </div>
+    {% set total_p = progress_stats.done + progress_stats.in_progress + progress_stats.planned + progress_stats.dropped %}
+    {% if total_p > 0 %}
+    <div style="margin-top:16px;">
+      <div style="height:10px;border-radius:999px;overflow:hidden;display:flex;gap:2px;">
+        {% if progress_stats.done %}
+        <div style="flex:{{ progress_stats.done }};background:var(--success);border-radius:999px 0 0 999px;" title="Завершено"></div>
+        {% endif %}
+        {% if progress_stats.in_progress %}
+        <div style="flex:{{ progress_stats.in_progress }};background:var(--primary);" title="В процессе"></div>
+        {% endif %}
+        {% if progress_stats.planned %}
+        <div style="flex:{{ progress_stats.planned }};background:var(--warning);" title="В планах"></div>
+        {% endif %}
+        {% if progress_stats.dropped %}
+        <div style="flex:{{ progress_stats.dropped }};background:var(--text-faint);border-radius:0 999px 999px 0;" title="Брошено"></div>
+        {% endif %}
+      </div>
+      <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
+        <span class="legend-item"><span class="legend-dot" style="background:var(--success);"></span>Завершено {{ (progress_stats.done / total_p * 100)|round|int }}%</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--primary);"></span>В процессе {{ (progress_stats.in_progress / total_p * 100)|round|int }}%</span>
+        <span class="legend-item"><span class="legend-dot" style="background:var(--warning);"></span>В планах {{ (progress_stats.planned / total_p * 100)|round|int }}%</span>
+        {% if progress_stats.dropped %}
+        <span class="legend-item"><span class="legend-dot" style="background:var(--text-faint);"></span>Брошено {{ (progress_stats.dropped / total_p * 100)|round|int }}%</span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ИМПОРТ -->
   <div class="card mt-4">
     <div class="card-head">
       <div>

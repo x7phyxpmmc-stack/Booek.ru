@@ -416,6 +416,54 @@ def logout():
 # DASHBOARD & STATS
 # ========================================================================
 
+def get_status_statistics():
+    """Статистика по статусам для каждой категории"""
+    conn = get_db()
+    result = {}
+
+    queries = {
+        'anime':  ('SELECT status, COUNT(*) as cnt FROM items_anime GROUP BY status', 'status'),
+        'manga':  ('SELECT status, COUNT(*) as cnt FROM items_manga GROUP BY status', 'status'),
+        'films':  ('SELECT status, COUNT(*) as cnt FROM items_films GROUP BY status', 'status'),
+        'series': ('SELECT status, COUNT(*) as cnt FROM items_series GROUP BY status', 'status'),
+        'books':  ('SELECT status, COUNT(*) as cnt FROM items_books GROUP BY status', 'status'),
+        'games':  ('SELECT status, COUNT(*) as cnt FROM items_games GROUP BY status', 'status'),
+    }
+
+    for key, (sql, _) in queries.items():
+        try:
+            rows = conn.execute(sql).fetchall()
+            result[key] = [{'status': r['status'], 'count': r['cnt']} for r in rows]
+        except Exception:
+            result[key] = []
+
+    conn.close()
+    return result
+
+
+def get_progress_stats():
+    """Общий прогресс: завершено / в процессе / в планах / брошено"""
+    conn = get_db()
+    done_statuses      = "('просмотрено', 'прочитано', 'прошёл целиком')"
+    progress_statuses  = "('смотрю', 'читаю', 'играю')"
+    planned_statuses   = "('планирую',)"
+    dropped_statuses   = "('не досмотрел', 'не дочитал', 'прошёл частично')"
+
+    tables = ['items_anime', 'items_manga', 'items_films', 'items_series', 'items_books', 'items_games']
+
+    counts = {'done': 0, 'in_progress': 0, 'planned': 0, 'dropped': 0}
+    for t in tables:
+        try:
+            for key, statuses in [('done', done_statuses), ('in_progress', progress_statuses),
+                                   ('planned', planned_statuses), ('dropped', dropped_statuses)]:
+                r = conn.execute(f'SELECT COUNT(*) FROM {t} WHERE status IN {statuses}').fetchone()
+                counts[key] += r[0] if r else 0
+        except Exception:
+            pass
+    conn.close()
+    return counts
+
+
 def get_recent_items(limit=6):
     """Возвращает последние добавленные записи (по убыванию id)"""
     conn = get_db()
@@ -512,8 +560,9 @@ def statistics():
         stats.append({'category': cat, 'count': len(items), 'hours': round(h, 1)})
     conn.close()
 
-    # Получаю статистику по типам
-    type_statistics = get_type_statistics()
+    type_statistics    = get_type_statistics()
+    status_statistics  = get_status_statistics()
+    progress_stats     = get_progress_stats()
 
     return render_template(
         'statistics.html',
@@ -521,6 +570,8 @@ def statistics():
         total_hours=round(total_h, 1),
         total_items=total_i,
         type_statistics=type_statistics,
+        status_statistics=status_statistics,
+        progress_stats=progress_stats,
         sidebar_categories=stats
     )
 

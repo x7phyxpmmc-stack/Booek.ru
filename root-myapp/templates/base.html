@@ -16,10 +16,16 @@
   <!-- TOPBAR -->
   <div class="shell-top">
     <div class="topbar">
-      <a href="{{ url_for('dashboard') }}" class="brand">
-        <div class="brand-mark"></div>
-        Booek
-      </a>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <!-- Hamburger (mobile only) -->
+        <button class="hamburger" id="hamburgerBtn" aria-label="Открыть меню" onclick="toggleSidebar()">
+          <span></span><span></span><span></span>
+        </button>
+        <a href="{{ url_for('dashboard') }}" class="brand">
+          <div class="brand-mark"></div>
+          Booek
+        </a>
+      </div>
       <nav class="topbar-nav">
         <a href="{{ url_for('dashboard') }}" class="topbar-nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">Главная</a>
         <a href="{{ url_for('statistics') }}" class="topbar-nav-link {% if request.endpoint == 'statistics' %}active{% endif %}">Статистика</a>
@@ -33,15 +39,21 @@
     </div>
   </div>
 
+  <!-- SIDEBAR OVERLAY (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
   <!-- LAYOUT -->
   <div class="layout">
     <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="mainSidebar">
+      <!-- Mobile close button -->
+      <button class="sidebar-close" onclick="closeSidebar()" aria-label="Закрыть меню">✕</button>
+
       <div class="side-section-label">Навигация</div>
-      <a href="{{ url_for('dashboard') }}" class="side-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+      <a href="{{ url_for('dashboard') }}" class="side-item {% if request.endpoint == 'dashboard' %}active{% endif %}" onclick="closeSidebar()">
         <span class="side-item-left"><span class="side-icon">🏠</span>Главная</span>
       </a>
-      <a href="{{ url_for('statistics') }}" class="side-item {% if request.endpoint == 'statistics' %}active{% endif %}">
+      <a href="{{ url_for('statistics') }}" class="side-item {% if request.endpoint == 'statistics' %}active{% endif %}" onclick="closeSidebar()">
         <span class="side-item-left"><span class="side-icon">📊</span>Статистика</span>
       </a>
 
@@ -49,7 +61,8 @@
       <div class="side-section-label">Категории</div>
       {% for cat in sidebar_categories %}
       <a href="{{ url_for('view_category', category_id=cat.category.id) }}"
-         class="side-item {% if request.endpoint == 'view_category' and request.view_args.category_id == cat.category.id %}active{% endif %}">
+         class="side-item {% if request.endpoint == 'view_category' and request.view_args.category_id == cat.category.id %}active{% endif %}"
+         onclick="closeSidebar()">
         <span class="side-item-left">
           <span class="side-icon">
             {% if cat.category.type == 'anime' %}✨
@@ -70,7 +83,7 @@
       <div class="side-section-label">Добавить</div>
       {% set cat_types = [('anime','✨','Аниме'),('manga','📖','Манга'),('films','🎬','Фильмы'),('series','📺','Сериалы'),('books','📚','Книги'),('games','🎮','Игры')] %}
       {% for ctype, icon, label in cat_types %}
-      <a href="{{ url_for('add_' + ctype) }}" class="side-item {% if request.endpoint == 'add_' + ctype %}active{% endif %}">
+      <a href="{{ url_for('add_' + ctype) }}" class="side-item {% if request.endpoint == 'add_' + ctype %}active{% endif %}" onclick="closeSidebar()">
         <span class="side-item-left"><span class="side-icon">{{ icon }}</span>{{ label }}</span>
       </a>
       {% endfor %}
@@ -92,7 +105,7 @@
   </div>
 
   <script>
-    // Theme management
+    // ---- Theme ----
     (function() {
       const saved = localStorage.getItem('booek-theme') ||
         (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -107,12 +120,38 @@
 
     function toggleTheme() {
       const html = document.documentElement;
-      const current = html.getAttribute('data-theme') || 'light';
-      const next = current === 'dark' ? 'light' : 'dark';
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
       localStorage.setItem('booek-theme', next);
       updateThemeIcon(next);
     }
+
+    // ---- Mobile Sidebar ----
+    function toggleSidebar() {
+      const sidebar  = document.getElementById('mainSidebar');
+      const overlay  = document.getElementById('sidebarOverlay');
+      const isOpen   = sidebar.classList.contains('open');
+      if (isOpen) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      } else {
+        sidebar.classList.add('open');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeSidebar() {
+      document.getElementById('mainSidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // Close on ESC
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeSidebar();
+    });
   </script>
   {% block extra_scripts %}{% endblock %}
 </body>
