@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apple-style Redesign v2 — Media Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f5f7;
+  --surface: rgba(255,255,255,0.82);
+  --surface-solid: #ffffff;
+  --surface-soft: #fbfbfd;
+  --surface-muted: #f0f1f4;
+  --border: rgba(15, 23, 42, 0.08);
+  --border-strong: rgba(15, 23, 42, 0.12);
+  --text: #1d1d1f;
+  --text-muted: #6e6e73;
+  --text-faint: #9a9aa1;
+  --primary: #0071e3;
+  --primary-soft: rgba(0, 113, 227, 0.10);
+  --success: #34c759;
+  --warning: #ff9f0a;
+  --danger: #ff453a;
+  --shadow-sm: 0 2px 8px rgba(15,23,42,0.04);
+  --shadow-md: 0 12px 32px rgba(15,23,42,0.08);
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #0b0b0f;
+  --surface: rgba(28,28,30,0.82);
+  --surface-solid: #1c1c1e;
+  --surface-soft: #232326;
+  --surface-muted: #2c2c2f;
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.12);
+  --text: #f5f5f7;
+  --text-muted: #a1a1aa;
+  --text-faint: #71717a;
+  --primary: #0a84ff;
+  --primary-soft: rgba(10,132,255,0.15);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.28);
+  --shadow-md: 0 20px 42px rgba(0,0,0,0.35);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background:
+    radial-gradient(circle at top left, rgba(0,113,227,0.05), transparent 28%),
+    radial-gradient(circle at top right, rgba(255,255,255,0.9), transparent 30%),
+    var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at top left, rgba(10,132,255,0.10), transparent 24%),
+    radial-gradient(circle at top right, rgba(255,255,255,0.03), transparent 26%),
+    var(--bg);
+}
+button, input, select, textarea { font: inherit; }
+.shell-top {
+  position: sticky; top: 0; z-index: 30;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  background: rgba(245,245,247,0.72);
+  border-bottom: 1px solid var(--border);
+}
+[data-theme="dark"] .shell-top { background: rgba(11,11,15,0.7); }
+.topbar {
+  max-width: 1480px; margin: 0 auto; padding: 12px 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.02em;
+}
+.brand-mark {
+  width: 30px; height: 30px; border-radius: 10px; background: linear-gradient(180deg, var(--primary), #4da3ff);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+}
+.top-actions { display: flex; align-items: center; gap: 10px; }
+.pill-btn {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  height: 38px; padding: 0 14px; border-radius: var(--radius-pill); cursor: pointer;
+  backdrop-filter: blur(18px); box-shadow: var(--shadow-sm);
+}
+.layout {
+  max-width: 1480px; margin: 0 auto; padding: 22px 24px 32px;
+  display: grid; grid-template-columns: 260px 1fr; gap: 22px;
+}
+.sidebar {
+  position: sticky; top: 76px; align-self: start;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 24px; padding: 16px;
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: var(--shadow-md);
+}
+.side-label {
+  font-size: 12px; text-transform: uppercase; letter-spacing: .10em;
+  color: var(--text-faint); margin: 12px 10px 6px;
+}
+.side-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; border: 0; background: transparent; color: var(--text-muted);
+  padding: 12px 14px; border-radius: 16px; cursor: pointer; text-align: left;
+}
+.side-item-left { display: flex; align-items: center; gap: 10px; }
+.side-item:hover { background: var(--surface-soft); color: var(--text); }
+.side-item.active { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+.side-badge {
+  min-width: 26px; padding: 2px 8px; text-align: center; border-radius: 999px;
+  background: var(--surface-muted); color: var(--text-muted); font-size: 12px; font-weight: 600;
+}
+.side-item.active .side-badge { background: rgba(0,113,227,0.12); color: var(--primary); }
+.content {
+  background: rgba(255,255,255,0.36); border: 1px solid var(--border);
+  border-radius: 28px; min-height: 840px; overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+[data-theme="dark"] .content { background: rgba(255,255,255,0.02); }
+.content-head {
+  padding: 26px 28px 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+}
+.title-wrap h1 { margin: 0; font-size: 34px; line-height: 1.08; letter-spacing: -0.04em; }
+.title-wrap p { margin: 8px 0 0; color: var(--text-muted); font-size: 15px; }
+.apple-tabs {
+  display: inline-flex; gap: 6px; padding: 6px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.apple-tab {
+  border: 0; background: transparent; color: var(--text-muted); cursor: pointer;
+  padding: 9px 14px; border-radius: 999px; font-size: 14px; font-weight: 600;
+}
+.apple-tab.active { background: var(--surface-solid); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.page-area { padding: 0 28px 28px; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.kpi {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 22px;
+  padding: 18px 18px 16px; box-shadow: var(--shadow-sm); backdrop-filter: blur(16px);
+}
+.kpi small { display: block; color: var(--text-muted); font-size: 12px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .08em; }
+.kpi strong { display: block; font-size: 30px; letter-spacing: -0.05em; line-height: 1; }
+.kpi span { display: block; color: var(--text-muted); font-size: 13px; margin-top: 8px; }
+.grid-2 { display: grid; grid-template-columns: 1.45fr 1fr; gap: 16px; margin-bottom: 16px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 24px; padding: 18px; box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(16px) saturate(160%);
+}
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.card-head h2 { margin: 0; font-size: 18px; letter-spacing: -0.03em; }
+.card-head p { margin: 4px 0 0; color: var(--text-muted); font-size: 13px; }
+.list {
+  display: grid; gap: 10px;
+}
+.item-row {
+  display: grid; grid-template-columns: 58px 1fr auto; gap: 12px; align-items: center;
+  padding: 10px; border-radius: 18px; background: var(--surface-soft); border: 1px solid rgba(255,255,255,0.02);
+}
+.poster {
+  width: 58px; height: 78px; border-radius: 14px; background: linear-gradient(160deg, #d9e8ff, #b8d1f6);
+}
+.poster.alt1 { background: linear-gradient(160deg, #ece2ff, #d2c2ff); }
+.poster.alt2 { background: linear-gradient(160deg, #dff4e5, #bce8c9); }
+.poster.alt3 { background: linear-gradient(160deg, #fff0d9, #ffd39f); }
+.meta-title { font-weight: 600; letter-spacing: -0.02em; margin-bottom: 4px; }
+.meta-sub { color: var(--text-muted); font-size: 13px; }
+.tag {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; background: var(--surface-muted); color: var(--text-muted);
+}
+.tag.primary { background: var(--primary-soft); color: var(--primary); }
+.tag.success { background: rgba(52,199,89,.12); color: #208a3d; }
+.tag.warn { background: rgba(255,159,10,.14); color: #a65f00; }
+[data-theme="dark"] .tag.success { color: #5ce07f; }
+.section {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 18px; box-shadow: var(--shadow-sm);
+}
+.section + .section { margin-top: 16px; }
+.table-wrap { overflow: hidden; border-radius: 20px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 14px 16px; text-align: left; }
+th { font-size: 12px; color: var(--text-faint); text-transform: uppercase; letter-spacing: .08em; background: var(--surface-soft); }
+td { font-size: 14px; border-top: 1px solid var(--border); }
+.controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.search {
+  flex: 1 1 260px; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px;
+  border-radius: 16px; border: 1px solid var(--border); background: var(--surface-soft);
+}
+.search input { border: 0; background: transparent; outline: none; width: 100%; color: var(--text); }
+.filter-chip {
+  height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text-muted); cursor: pointer;
+}
+.filter-chip.active { background: var(--primary-soft); color: var(--primary); border-color: rgba(0,113,227,.18); }
+.primary-btn {
+  height: 44px; padding: 0 18px; border-radius: 999px; border: 0; background: var(--primary); color: white;
+  font-weight: 600; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
+}
+.secondary-btn {
+  height: 44px; padding: 0 18px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface); color: var(--text); font-weight: 600; cursor: pointer;
+}
+.form-shell { max-width: 860px; }
+.form-block {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 22px; box-shadow: var(--shadow-sm);
+}
+.form-block + .form-block { margin-top: 16px; }
+.form-block h2 { margin: 0 0 18px; font-size: 18px; letter-spacing: -0.03em; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.full { grid-column: 1 / -1; }
+.label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
+.input, .select, .textarea {
+  width: 100%; border: 1px solid var(--border); background: var(--surface-soft); color: var(--text);
+  border-radius: 16px; padding: 14px 14px; outline: none;
+}
+.textarea { min-height: 110px; resize: vertical; }
+.input-row { display: flex; flex-direction: column; gap: 10px; }
+.inline-note {
+  padding: 12px 14px; border-radius: 16px; background: var(--surface-soft); color: var(--text-muted); font-size: 13px;
+  border: 1px solid var(--border);
+}
+.form-actions { display: flex; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+.stars { display: flex; align-items: center; gap: 6px; }
+.star { font-size: 24px; opacity: .28; }
+.star.on { opacity: 1; }
+.stats-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; }
+.chart-box { padding: 14px 0 0; }
+.bar { display: grid; grid-template-columns: 72px 1fr 36px; gap: 10px; align-items: center; margin-bottom: 10px; }
+.bar span { font-size: 13px; color: var(--text-muted); }
+.track { height: 10px; border-radius: 999px; background: var(--surface-muted); overflow: hidden; }
+.fill { height: 100%; border-radius: 999px; background: var(--primary); }
+.donut-card { display: flex; align-items: center; gap: 18px; }
+.legend { display: grid; gap: 10px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); }
+.dot { width: 10px; height: 10px; border-radius: 999px; }
+.mock-nav { display: none; }
+.view { display: none; }
+.view.active { display: block; }
+@media (max-width: 1100px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: static; }
+  .kpis, .grid-2, .stats-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .topbar, .layout { padding-left: 14px; padding-right: 14px; }
+  .content-head { padding: 18px 16px 12px; flex-direction: column; align-items: stretch; }
+  .page-area { padding: 0 16px 16px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .table-wrap { overflow: auto; }
+  .mock-nav { display: flex; gap: 8px; overflow: auto; padding-bottom: 4px; }
+  .apple-tabs { display: none; }
+}
+</style>
+</head>
+<body>
+  <div class="shell-top">
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>Media Tracker</div>
+      </div>
+      <div class="top-actions">
+        <button class="pill-btn" onclick="toggleTheme()">Тема</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="side-label">Навигация</div>
+      <button class="side-item active"><span class="side-item-left">🏠 Главная</span></button>
+      <button class="side-item"><span class="side-item-left">📊 Статистика</span></button>
+
+      <div class="side-label">Категории</div>
+      <button class="side-item"><span class="side-item-left">🎬 Фильмы</span><span class="side-badge">48</span></button>
+      <button class="side-item"><span class="side-item-left">📺 Сериалы</span><span class="side-badge">31</span></button>
+      <button class="side-item"><span class="side-item-left">✨ Аниме</span><span class="side-badge">87</span></button>
+      <button class="side-item"><span class="side-item-left">📚 Книги</span><span class="side-badge">62</span></button>
+      <button class="side-item"><span class="side-item-left">🎮 Игры</span><span class="side-badge">24</span></button>
+      <button class="side-item"><span class="side-item-left">📖 Манга</span><span class="side-badge">40</span></button>
+    </aside>
+
+    <main class="content">
+      <div class="content-head">
+        <div class="title-wrap">
+          <h1>Обновлённый макет</h1>
+          <p>Сохраняем текущую структуру: главная, статистика и формы добавления/редактирования по пунктам.</p>
+        </div>
+        <div>
+          <div class="apple-tabs">
+            <button class="apple-tab active" onclick="showView('home', this)">Главная</button>
+            <button class="apple-tab" onclick="showView('stats', this)">Статистика</button>
+            <button class="apple-tab" onclick="showView('add', this)">Добавление</button>
+            <button class="apple-tab" onclick="showView('edit', this)">Редактирование</button>
+          </div>
+          <div class="mock-nav">
+            <button class="filter-chip active" onclick="showView('home', this, true)">Главная</button>
+            <button class="filter-chip" onclick="showView('stats', this, true)">Статистика</button>
+            <button class="filter-chip" onclick="showView('add', this, true)">Добавление</button>
+            <button class="filter-chip" onclick="showView('edit', this, true)">Редактирование</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-area">
+        <section class="view active" id="view-home">
+          <div class="kpis">
+            <div class="kpi"><small>Всего записей</small><strong>292</strong><span>во всей медиатеке</span></div>
+            <div class="kpi"><small>Просмотрено</small><strong>184</strong><span>63% от общего числа</span></div>
+            <div class="kpi"><small>В процессе</small><strong>23</strong><span>активных тайтла</span></div>
+            <div class="kpi"><small>В планах</small><strong>85</strong><span>ожидают очереди</span></div>
+          </div>
+
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h2>Недавно добавленные</h2>
+                  <p>Главная страница остаётся как сейчас по смыслу, но в новом стиле.</p>
+                </div>
+                <button class="secondary-btn">Открыть всё</button>
+              </div>
+              <div class="list">
+                <div class="item-row">
+                  <div class="poster"></div>
+                  <div><div class="meta-title">Dune: Part Two</div><div class="meta-sub">Фильм · 2024</div></div>
+                  <span class="tag success">Просмотрено</span>
+                </div>
+                <div class="item-row">
+                  <div class="poster alt1"></div>
+                  <div><div class="meta-title">Severance</div><div class="meta-sub">Сериал · 2 сезон</div></div>
+                  <span class="tag primary">Смотрю</span>
+                </div>
+                <div class="item-row">
+                  <div class="poster alt2"></div>
+                  <div><div class="meta-title">Frieren</div><div class="meta-sub">Аниме · 28 эпизодов</div></div>
+                  <span class="tag success">Просмотрено</span>
+                </div>
+                <div class="item-row">
+                  <div class="poster alt3"></div>
+                  <div><div class="meta-title">Berserk Deluxe</div><div class="meta-sub">Манга · Том 8</div></div>
+                  <span class="tag warn">В планах</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h2>Быстрые действия</h2>
+                  <p>Сохраняем понятную навигацию без перегруза.</p>
+                </div>
+              </div>
+              <div class="list">
+                <div class="item-row" style="grid-template-columns:1fr auto;">
+                  <div><div class="meta-title">Добавить новую запись</div><div class="meta-sub">Фильм, книга, аниме, игра</div></div>
+                  <button class="primary-btn">Добавить</button>
+                </div>
+                <div class="item-row" style="grid-template-columns:1fr auto;">
+                  <div><div class="meta-title">Открыть статистику</div><div class="meta-sub">Графики и сводка по категориям</div></div>
+                  <button class="secondary-btn">Смотреть</button>
+                </div>
+                <div class="item-row" style="grid-template-columns:1fr auto;">
+                  <div><div class="meta-title">Экспорт базы</div><div class="meta-sub">CSV / резервная копия</div></div>
+                  <button class="secondary-btn">Экспорт</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="card-head">
+              <div>
+                <h2>Список карточек в категории</h2>
+                <p>Пример того, как список будет выглядеть в Apple-стиле.</p>
+              </div>
+            </div>
+            <div class="controls">
+              <div class="search"><span style="color:var(--text-faint)">⌕</span><input value="" placeholder="Поиск по категории"></div>
+              <button class="filter-chip active">Все</button>
+              <button class="filter-chip">Просмотрено</button>
+              <button class="filter-chip">Смотрю</button>
+              <button class="filter-chip">В планах</button>
+              <button class="primary-btn">+ Добавить запись</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Название</th><th>Тип</th><th>Статус</th><th>Оценка</th><th>Действия</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>Dune: Part Two</strong></td><td>Фильм</td><td><span class="tag success">Просмотрено</span></td><td>9/10</td><td>✏️ 🗑️</td></tr>
+                  <tr><td><strong>Frieren</strong></td><td>Аниме</td><td><span class="tag success">Просмотрено</span></td><td>10/10</td><td>✏️ 🗑️</td></tr>
+                  <tr><td><strong>Severance</strong></td><td>Сериал</td><td><span class="tag primary">Смотрю</span></td><td>—</td><td>✏️ 🗑️</td></tr>
+                  <tr><td><strong>Elden Ring</strong></td><td>Игра</td><td><span class="tag warn">В планах</span></td><td>—</td><td>✏️ 🗑️</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-stats">
+          <div class="kpis">
+            <div class="kpi"><small>Средняя оценка</small><strong>7.4</strong><span>по всем завершённым</span></div>
+            <div class="kpi"><small>За месяц</small><strong>14</strong><span>новых записей</span></div>
+            <div class="kpi"><small>Любимая категория</small><strong>Аниме</strong><span>87 записей</span></div>
+            <div class="kpi"><small>Повторно</small><strong>19</strong><span>пересмотров / перепрохождений</span></div>
+          </div>
+          <div class="stats-grid">
+            <div class="card">
+              <div class="card-head"><div><h2>По категориям</h2><p>Статистика остаётся отдельной вкладкой, как у тебя сейчас.</p></div></div>
+              <div class="chart-box">
+                <div class="bar"><span>Аниме</span><div class="track"><div class="fill" style="width: 87%"></div></div><strong>87</strong></div>
+                <div class="bar"><span>Книги</span><div class="track"><div class="fill" style="width: 62%; background:#34c759"></div></div><strong>62</strong></div>
+                <div class="bar"><span>Фильмы</span><div class="track"><div class="fill" style="width: 48%; background:#af52de"></div></div><strong>48</strong></div>
+                <div class="bar"><span>Манга</span><div class="track"><div class="fill" style="width: 40%; background:#ff9f0a"></div></div><strong>40</strong></div>
+                <div class="bar"><span>Сериалы</span><div class="track"><div class="fill" style="width: 31%; background:#ff453a"></div></div><strong>31</strong></div>
+                <div class="bar"><span>Игры</span><div class="track"><div class="fill" style="width: 24%; background:#5e5ce6"></div></div><strong>24</strong></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-head"><div><h2>Статус записей</h2><p>Чистые графики без перегруза.</p></div></div>
+              <div class="donut-card">
+                <svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true">
+                  <circle cx="75" cy="75" r="48" fill="none" stroke="var(--surface-muted)" stroke-width="20"></circle>
+                  <circle cx="75" cy="75" r="48" fill="none" stroke="#34c759" stroke-width="20" stroke-linecap="round" stroke-dasharray="190 301" transform="rotate(-90 75 75)"></circle>
+                  <circle cx="75" cy="75" r="48" fill="none" stroke="var(--primary)" stroke-width="20" stroke-linecap="round" stroke-dasharray="34 301" stroke-dashoffset="-196" transform="rotate(-90 75 75)"></circle>
+                  <circle cx="75" cy="75" r="48" fill="none" stroke="#ff9f0a" stroke-width="20" stroke-linecap="round" stroke-dasharray="77 301" stroke-dashoffset="-234" transform="rotate(-90 75 75)"></circle>
+                  <text x="75" y="73" text-anchor="middle" font-size="26" font-weight="700" fill="var(--text)">292</text>
+                  <text x="75" y="92" text-anchor="middle" font-size="12" fill="var(--text-muted)">всего</text>
+                </svg>
+                <div class="legend">
+                  <div class="legend-item"><span class="dot" style="background:#34c759"></span>Просмотрено — <strong style="color:var(--text)">184</strong></div>
+                  <div class="legend-item"><span class="dot" style="background:var(--primary)"></span>В процессе — <strong style="color:var(--text)">23</strong></div>
+                  <div class="legend-item"><span class="dot" style="background:#ff9f0a"></span>В планах — <strong style="color:var(--text)">85</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-add">
+          <div class="form-shell">
+            <div class="form-block">
+              <h2>Добавление записи</h2>
+              <div class="form-grid">
+                <div class="full input-row">
+                  <label class="label">Название</label>
+                  <input class="input" placeholder="Введите название">
+                </div>
+                <div class="full input-row">
+                  <label class="label">Обложка</label>
+                  <input class="input" value="Выбрать файл / URL обложки">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-block">
+              <h2>Параметры записи</h2>
+              <div class="form-grid">
+                <div class="input-row">
+                  <label class="label">Категория / Тип</label>
+                  <select class="select"><option>Фильм</option><option>Книга</option><option>Аниме</option></select>
+                </div>
+                <div class="input-row">
+                  <label class="label">Статус</label>
+                  <select class="select"><option>Планирую</option><option>Смотрю</option><option>Просмотрено</option></select>
+                </div>
+                <div class="input-row">
+                  <label class="label">Длительность / страницы / главы</label>
+                  <input class="input" placeholder="0">
+                </div>
+                <div class="input-row">
+                  <label class="label">Повторные просмотры / перечитывания</label>
+                  <input class="input" placeholder="0">
+                </div>
+                <div class="full inline-note">Здесь мы сохраняем твой текущий подход: форма остаётся разбитой по смысловым пунктам, как в существующих шаблонах добавления.[file:44][file:43][file:46][file:47]</div>
+              </div>
+            </div>
+
+            <div class="form-block">
+              <h2>Дополнительно</h2>
+              <div class="form-grid">
+                <div class="full input-row">
+                  <label class="label">Источник / URL</label>
+                  <input class="input" placeholder="https://...">
+                </div>
+                <div class="full input-row">
+                  <label class="label">Заметки</label>
+                  <textarea class="textarea" placeholder="Твои заметки по записи"></textarea>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="primary-btn">Сохранить</button>
+                <button class="secondary-btn">Отмена</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-edit">
+          <div class="form-shell">
+            <div class="form-block">
+              <h2>Редактирование записи</h2>
+              <div class="form-grid">
+                <div class="full input-row">
+                  <label class="label">Название</label>
+                  <input class="input" value="Dune: Part Two">
+                </div>
+                <div class="full input-row">
+                  <label class="label">Обложка</label>
+                  <input class="input" value="cover.jpg / https://example.com/cover.jpg">
+                </div>
+              </div>
+            </div>
+            <div class="form-block">
+              <h2>Параметры записи</h2>
+              <div class="form-grid">
+                <div class="input-row">
+                  <label class="label">Категория / Тип</label>
+                  <select class="select"><option selected>Фильм</option></select>
+                </div>
+                <div class="input-row">
+                  <label class="label">Статус</label>
+                  <select class="select"><option>Планирую</option><option>Смотрю</option><option selected>Просмотрено</option></select>
+                </div>
+                <div class="input-row">
+                  <label class="label">Длительность</label>
+                  <input class="input" value="166">
+                </div>
+                <div class="input-row">
+                  <label class="label">Повторные просмотры</label>
+                  <input class="input" value="1">
+                </div>
+                <div class="full input-row">
+                  <label class="label">Оценка</label>
+                  <div class="stars"><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span class="star on">★</span><span style="margin-left:6px;color:var(--text-muted)">10 / 10</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="form-block">
+              <h2>Дополнительно</h2>
+              <div class="form-grid">
+                <div class="full input-row">
+                  <label class="label">Источник / URL</label>
+                  <input class="input" value="https://example.com">
+                </div>
+                <div class="full input-row">
+                  <label class="label">Заметки</label>
+                  <textarea class="textarea">Очень сильный визуально и атмосферно фильм.</textarea>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button class="primary-btn">Сохранить изменения</button>
+                <button class="secondary-btn">Отмена</button>
+                <button class="secondary-btn" style="color: var(--danger); margin-left:auto;">Удалить</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+<script>
+function showView(name, el, mobile) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+
+  if (!mobile) {
+    document.querySelectorAll('.apple-tab').forEach(btn => btn.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.mock-nav .filter-chip').forEach(btn => btn.classList.remove('active'));
+    const mobileButtons = document.querySelectorAll('.mock-nav .filter-chip');
+    if (name === 'home') mobileButtons[0].classList.add('active');
+    if (name === 'stats') mobileButtons[1].classList.add('active');
+    if (name === 'add') mobileButtons[2].classList.add('active');
+    if (name === 'edit') mobileButtons[3].classList.add('active');
+  } else {
+    document.querySelectorAll('.mock-nav .filter-chip').forEach(btn => btn.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.apple-tab').forEach(btn => btn.classList.remove('active'));
+    const desktopButtons = document.querySelectorAll('.apple-tab');
+    if (name === 'home') desktopButtons[0].classList.add('active');
+    if (name === 'stats') desktopButtons[1].classList.add('active');
+    if (name === 'add') desktopButtons[2].classList.add('active');
+    if (name === 'edit') desktopButtons[3].classList.add('active');
+  }
+}
+function toggleTheme() {
+  const html = document.documentElement;
+  html.setAttribute('data-theme', html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+}
+</script>
+</body>
+</html>

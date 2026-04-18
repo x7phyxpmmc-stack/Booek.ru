@@ -1,0 +1,7 @@
+Давай так. Я скину все свои файлы и расположение их и ты поможешь мне сделать так чтобы все работало на сервере с нуля. Все что я скину уже есть на сервере
+В root/myapp находятся app.py, database.db, db_maintenance.py, export_import.py, init_db.py, migrate.py, requirements.txt, wsgi.py, Изменения.txt, расположегние.txt
+В root/myapp/static находятся /exports 
+В root/myapp/templates находятся все шаблоны html с картинки templates.png
+В /etc/systemd/system/myapp.service находится файл myapp.service
+В /var/www/myapp_static находятся папки css, exports, js, uploads
+так же в /var/www/myapp_static/ находится favicon.ico
