@@ -1,0 +1,1011 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} - Media Tracker{% endblock %}
+
+{% block content %}
+<div class="category-container">
+    <!-- ЗАГОЛОВОК И НАВИГАЦИЯ -->
+    <div class="category-header">
+        <div class="header-top">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">← Вернуться на главную</a>
+            <div class="header-spacer"></div>
+            <a href="{{ url_for('add_' + category.type) }}" class="btn btn-primary">+ Добавить элемент</a>
+        </div>
+
+        <h1 class="category-title">{{ category.name }}</h1>
+
+        <div class="category-stats-section">
+            <span class="stat-item">{{ stats.total_items }} элементов</span>
+            <span class="stat-separator">|</span>
+            <span class="stat-item">{{ stats.total_hours }} часов</span>
+        </div>
+    </div>
+
+    {% if items %}
+        <!-- ФИЛЬТРЫ И ПОИСК -->
+        <div class="category-controls">
+            <!-- ПОИСК -->
+            <div class="search-box">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="🔍 Поиск в категории..."
+                    autocomplete="off"
+                >
+            </div>
+
+            <!-- СОРТИРОВКА И ВИД -->
+            <div class="controls-right">
+                <div class="sort-box">
+                    <label for="sortSelect">Сортировка:</label>
+                    <select id="sortSelect" class="sort-select">
+                        <option value="alphabetical">По алфавиту (А-Я)</option>
+                        <option value="alphabetical-reverse">По алфавиту (Я-А)</option>
+                        <option value="watch-time-desc">Большее время</option>
+    			<option value="watch-time-asc">Меньшее время</option>                   
+			</select>
+                </div>
+
+                <!-- ВЫБОР ВИДА ОТОБРАЖЕНИЯ -->
+                <div class="view-mode-box">
+                    <button class="view-mode-btn active" data-view="grid" title="Pinterest вид">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </button>
+                    <button class="view-mode-btn" data-view="list" title="Список">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                    </button>
+                    <button class="view-mode-btn" data-view="compact" title="Компактный вид">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <circle cx="4" cy="6" r="1"></circle>
+                            <circle cx="4" cy="12" r="1"></circle>
+                            <circle cx="4" cy="18" r="1"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ВКЛАДКИ СТАТУСОВ (ДИНАМИЧЕСКИЕ) -->
+        <div class="status-tabs-container">
+            <button class="status-tab active" data-status="all">
+                Все <span class="tab-count">({{ items|length }})</span>
+            </button>
+            {% set statuses = [] %}
+            {% for item in items %}
+                {% if item.data.status not in statuses %}
+                    {% set _ = statuses.append(item.data.status) %}
+                {% endif %}
+            {% endfor %}
+            
+            {% for status in statuses|sort %}
+                {% set count = items|selectattr('data.status', 'equalto', status)|list|length %}
+                <button class="status-tab" data-status="{{ status }}">
+                    {{ status }} <span class="tab-count">({{ count }})</span>
+                </button>
+            {% endfor %}
+        </div>
+
+        <!-- КОНТЕЙНЕР ЭЛЕМЕНТОВ -->
+        <div class="items-container" data-view="grid">
+            {% for item in items %}
+            <div class="item-card" data-title="{{ item.base.title }}" data-added="{{ loop.index0 }}" data-status="{{ item.data.status }}" data-hours="{{ item.hours }}">
+
+                <div class="item-number">{{ loop.index }}</div>
+                
+                <div class="item-card-main">
+                    <!-- ОБЛОЖКА -->
+                    <div class="item-cover-wrapper">
+                        {% if item.base.cover_image %}
+                            {% if item.base.cover_source == 'upload' %}
+                                <img src="{{ url_for('static', filename='uploads/' + item.base.cover_image) }}" alt="{{ item.base.title }}" class="item-cover">
+                            {% else %}
+                                <img src="{{ item.base.cover_image }}" alt="{{ item.base.title }}" class="item-cover">
+                            {% endif %}
+                        {% else %}
+                            <div class="item-cover-placeholder">
+                                <span style="font-size: 40px;">📚</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- ИНФОРМАЦИЯ О ЭЛЕМЕНТЕ -->
+                    <div class="item-info">
+                        <h3 class="item-title">
+                            <a href="{{ url_for('edit_' + item.type, item_id=item.base.id) }}" class="item-link">
+                                {{ item.base.title }}
+                            </a>
+                        </h3>
+
+                        <div class="item-meta">
+                            <!-- СТАТУС (РАЗНОЦВЕТНЫЙ) -->
+                            <div class="item-status">
+                                <span class="status-badge status-{{ item.data.status|replace(' ', '-')|lower }}">
+                                    {{ item.data.status }}
+                                </span>
+                            </div>
+
+                            <!-- ИСТОЧНИК (ССЫЛКА) -->
+                            {% if item.base.source_url %}
+                                <a href="{{ item.base.source_url }}" target="_blank" rel="noopener noreferrer" class="item-source-link">
+                                    🔗 Источник
+                                </a>
+                            {% endif %}
+
+                            <!-- ОСТАЛЬНАЯ ИНФОРМАЦИЯ -->
+                            {% if item.type == 'anime' %}
+                                <span>{{ item.data.episodes }} серий • {{ item.data.anime_type }}</span>
+                            {% elif item.type == 'manga' %}
+                                <span>{{ item.data.chapters }} глав • {{ item.data.manga_type }}</span>
+                            {% elif item.type == 'films' %}
+                                <span>{{ item.data.duration }} мин</span>
+                            {% elif item.type == 'series' %}
+                                <span>{{ item.data.episodes }} эпизодов по {{ item.data.episode_duration }} мин</span>
+                            {% elif item.type == 'books' %}
+                                <span>{{ item.data.book_type }}</span>
+                            {% elif item.type == 'games' %}
+                                <span>{{ item.data.hours }} часов</span>
+                            {% endif %}
+                        </div>
+
+                                                <div class="item-footer">
+                            <span class="item-duration">⏱️ {{ item.hours }} часов</span>
+                            <div class="item-actions">
+                                <a href="{{ url_for('edit_' + item.type, item_id=item.base.id) }}" class="item-edit-btn">✏️</a>
+                                <form method="POST" action="{{ url_for('delete_item', item_id=item.base.id) }}" style="margin: 0;" onsubmit="return confirm('⚠️ Вы уверены? Это действие нельзя отменить.');">
+                                    <button type="submit" class="item-delete-btn">🗑️</button>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- ПУСТО -->
+        <div class="no-results">
+            <p style="font-size: 40px; margin: 0;">😔</p>
+            <p style="font-size: 18px; margin: 10px 0; color: var(--color-text);">По вашему запросу ничего не найдено</p>
+            <p style="color: var(--color-text-secondary); margin-bottom: 20px;">В этой категории пока ничего нет.</p>
+            <a href="{{ url_for('add_' + category.type) }}" class="btn btn-primary">+ Добавить элемент</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+/* КАТЕГОРИЯ - ОСНОВНЫЕ СТИЛИ */
+.category-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.category-header {
+    margin-bottom: 30px;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.header-spacer {
+    flex: 1;
+}
+
+.category-title {
+    font-size: 32px;
+    margin: 0 0 15px 0;
+    color: var(--color-text);
+}
+
+.category-stats-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 20px;
+}
+
+.stat-item {
+    font-weight: 500;
+}
+
+.stat-separator {
+    color: var(--color-border);
+}
+
+/* ============ ВКЛАДКИ СТАТУСОВ ============ */
+.status-tabs-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.status-tab {
+    padding: 6px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 200ms ease;
+    white-space: nowrap;
+}
+
+.status-tab:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: rgba(33, 128, 141, 0.05);
+}
+
+.status-tab.active {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.tab-count {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+/* КОНТРОЛЫ ФИЛЬТРАЦИИ И СОРТИРОВКИ */
+.category-controls {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 15px;
+    margin-bottom: 30px;
+    align-items: center;
+}
+
+.search-box {
+    width: 100%;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    font-size: 14px;
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    transition: all 200ms ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(33, 128, 141, 0.1);
+}
+
+.controls-right {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.sort-box {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.sort-box label {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    font-weight: 500;
+}
+
+.sort-select {
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 200ms ease;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23134252' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 32px;
+}
+
+.sort-select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(33, 128, 141, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    .sort-select {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23f5f5f5' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    }
+}
+
+/* ВИД ОТОБРАЖЕНИЯ */
+.view-mode-box {
+    display: flex;
+    gap: 5px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-base);
+    padding: 5px;
+    background-color: var(--color-surface);
+}
+
+.view-mode-btn {
+    padding: 6px 8px;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 200ms ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-mode-btn:hover {
+    color: var(--color-text);
+    background-color: rgba(33, 128, 141, 0.1);
+}
+
+.view-mode-btn.active {
+    color: var(--color-primary);
+    background-color: rgba(33, 128, 141, 0.15);
+}
+
+/* КОНТЕЙНЕР ЭЛЕМЕНТОВ */
+.items-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.items-container[data-view="list"] {
+    grid-template-columns: 1fr;
+    gap: 15px;
+}
+
+.items-container[data-view="compact"] {
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+/* КАРТОЧКА ЭЛЕМЕНТА */
+.item-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-card-border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: all 300ms ease;
+    position: relative;
+}
+
+.item-card:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.items-container[data-view="grid"] .item-card:hover {
+    transform: translateY(-5px);
+}
+
+/* НОМЕР ЭЛЕМЕНТА */
+.item-number {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(33, 128, 141, 0.9);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 12px;
+    z-index: 10;
+}
+
+/* ============ СТАТУС БЕЙДЖИ ============ */
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+}
+
+.status-badge.status-просмотрено,
+.status-badge.status-прочитано,
+.status-badge.status-прошёл-целиком {
+    background-color: rgba(33, 128, 141, 0.2);
+    color: var(--color-primary);
+    border: 1px solid rgba(33, 128, 141, 0.3);
+}
+
+.status-badge.status-планирую {
+    background-color: rgba(255, 165, 0, 0.2);
+    color: #ff9800;
+    border: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+.status-badge.status-смотрю,
+.status-badge.status-читаю,
+.status-badge.status-играю {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-badge.status-не-досмотрел,
+.status-badge.status-не-дочитал {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: var(--color-error);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+/* ============ ССЫЛКА НА ИСТОЧНИК ============ */
+.item-source-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 3px;
+    transition: all 200ms ease;
+    white-space: nowrap;
+}
+
+.item-source-link:hover {
+    color: var(--color-primary-hover);
+    background-color: rgba(33, 128, 141, 0.1);
+    text-decoration: underline;
+}
+
+.item-source-link:active {
+    color: var(--color-primary-active);
+}
+
+/* GRID VIEW */
+.items-container[data-view="grid"] .item-card-main {
+    display: flex;
+    flex-direction: column;
+}
+
+/* LIST VIEW */
+.items-container[data-view="list"] .item-card-main {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 15px;
+    padding: 15px;
+    align-items: start;
+}
+
+.items-container[data-view="list"] .item-cover-wrapper {
+    height: 150px;
+    width: 120px;
+}
+
+.items-container[data-view="list"] .item-info {
+    padding: 0;
+}
+
+/* COMPACT VIEW - БЕЗ ОБЛОЖЕК */
+.items-container[data-view="compact"] .item-card-main {
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    padding: 10px;
+    align-items: center;
+}
+
+.items-container[data-view="compact"] .item-cover-wrapper {
+    display: none;
+}
+
+.items-container[data-view="compact"] .item-info {
+    padding: 0;
+    flex: 1;
+}
+
+/* ОБЛОЖКА */
+.item-cover-wrapper {
+    position: relative;
+    width: 100%;
+    padding-bottom: 150%;
+    overflow: hidden;
+    background-color: var(--color-secondary);
+}
+
+.items-container[data-view="list"] .item-cover-wrapper {
+    padding-bottom: 0;
+    height: 100%;
+}
+
+.item-cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.items-container[data-view="list"] .item-cover {
+    position: relative;
+}
+
+.item-cover-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary));
+}
+
+/* ИНФОРМАЦИЯ */
+.item-info {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.item-title {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.item-link {
+    color: var(--color-text);
+    text-decoration: none;
+    transition: color 200ms ease;
+}
+
+.item-link:hover {
+    color: var(--color-primary);
+}
+
+.item-meta {
+    flex: 1;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.item-status {
+    display: flex;
+    align-items: center;
+}
+
+                .item-footer {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 8px;
+                    border-top: 1px solid var(--color-card-border-inner);
+                    padding-top: 10px;
+                    margin-top: 10px;
+                    flex-wrap: wrap;
+                }
+
+                .item-duration {
+                    font-size: 12px;
+                    color: var(--color-text-secondary);
+                    font-weight: 500;
+                }
+
+                .item-actions {
+                    display: flex;
+                    gap: 8px;
+                    margin-left: auto;
+                }
+
+                .item-edit-btn {
+                    font-size: 12px;
+                    padding: 4px 8px;
+                    background-color: var(--color-primary);
+                    color: white;
+                    border-radius: 4px;
+                    text-decoration: none;
+                    transition: all 200ms ease;
+                    white-space: nowrap;
+                    border: none;
+                    cursor: pointer;
+                }
+
+                .item-edit-btn:hover {
+                    background-color: var(--color-primary-hover);
+                }
+
+                .item-delete-btn {
+                    font-size: 12px;
+                    padding: 4px 8px;
+                    background-color: #dc3545;
+                    color: white;
+                    border-radius: 4px;
+                    text-decoration: none;
+                    transition: all 200ms ease;
+                    white-space: nowrap;
+                    border: none;
+                    cursor: pointer;
+                    font-weight: 500;
+                }
+
+                .item-delete-btn:hover {
+                    background-color: #c82333;
+                }
+
+                .item-delete-btn:active {
+                    background-color: #a71d2a;
+                }
+
+/* ПУСТО */
+.no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--color-text-secondary);
+}
+
+/* ============ МОБИЛЬНАЯ АДАПТИВНОСТЬ ============ */
+
+@media (max-width: 1200px) {
+    .items-container[data-view="grid"] {
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .category-header {
+        margin-bottom: 20px;
+    }
+
+    .header-top {
+        flex-direction: column;
+        margin-bottom: 15px;
+    }
+
+    .header-top .btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .category-title {
+        font-size: 24px;
+    }
+
+    .category-stats-section {
+        font-size: 13px;
+        margin-bottom: 15px;
+    }
+
+    .status-tabs-container {
+        margin-bottom: 15px;
+    }
+
+    .category-controls {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .controls-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .sort-box {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .sort-select {
+        flex: 1;
+    }
+
+    .items-container[data-view="grid"] {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+    }
+
+    .items-container[data-view="list"] .item-card-main {
+        grid-template-columns: 100px 1fr;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .items-container[data-view="list"] .item-cover-wrapper {
+        width: 100px;
+        height: 120px;
+    }
+
+    .item-number {
+        width: 24px;
+        height: 24px;
+        font-size: 11px;
+        top: 8px;
+        right: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-container {
+        padding: 15px;
+    }
+
+    .category-title {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+
+    .category-stats-section {
+        font-size: 12px;
+        margin-bottom: 15px;
+    }
+
+    .header-top {
+        gap: 8px;
+    }
+
+    .header-top .btn {
+        flex: 1;
+        font-size: 12px;
+        padding: 10px 12px;
+    }
+
+    .status-tabs-container {
+        margin-bottom: 12px;
+        gap: 6px;
+    }
+
+    .status-tab {
+        padding: 5px 10px;
+        font-size: 12px;
+    }
+
+    .category-controls {
+        gap: 10px;
+    }
+
+    .controls-right {
+        gap: 8px;
+    }
+
+    .sort-box label {
+        display: none;
+    }
+
+    .sort-select {
+        padding: 8px;
+        font-size: 12px;
+    }
+
+    .view-mode-box {
+        padding: 4px;
+    }
+
+    .view-mode-btn {
+        padding: 5px 6px;
+    }
+
+    .view-mode-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .items-container[data-view="grid"] {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 10px;
+    }
+
+    .items-container[data-view="list"] .item-card-main {
+        grid-template-columns: 80px 1fr;
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .items-container[data-view="list"] .item-cover-wrapper {
+        width: 80px;
+        height: 100px;
+    }
+
+    .item-title {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .item-meta {
+        font-size: 12px;
+    }
+
+    .item-footer {
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    .item-edit-btn {
+        width: 100%;
+        text-align: center;
+        padding: 6px;
+    }
+
+    .no-results {
+        padding: 40px 15px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ЭЛЕМЕНТЫ
+    const searchInput = document.getElementById('searchInput');
+    const sortSelect = document.getElementById('sortSelect');
+    const viewModeButtons = document.querySelectorAll('.view-mode-btn');
+    const statusTabs = document.querySelectorAll('.status-tab');
+    const itemsContainer = document.querySelector('.items-container');
+    const allItems = document.querySelectorAll('.item-card');
+    const noResultsMessage = document.querySelector('.no-results');
+
+    let currentSort = 'alphabetical';
+    let currentView = 'grid';
+    let currentStatusFilter = 'all';
+
+    // ПЕРЕКЛЮЧЕНИЕ ВИДА ОТОБРАЖЕНИЯ
+    viewModeButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            viewModeButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            currentView = this.dataset.view;
+            itemsContainer.dataset.view = currentView;
+            applyFiltersAndSort();
+        });
+    });
+
+    // ФИЛЬТРАЦИЯ ПО СТАТУСАМ
+    statusTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            statusTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            currentStatusFilter = this.dataset.status;
+            applyFiltersAndSort();
+        });
+    });
+
+    // СОРТИРОВКА
+    sortSelect.addEventListener('change', function() {
+        currentSort = this.value;
+        applyFiltersAndSort();
+    });
+
+    // ПОИСК
+    searchInput.addEventListener('input', function() {
+        applyFiltersAndSort();
+    });
+
+    // ПРИМЕНЯЕМ ФИЛЬТРЫ И СОРТИРОВКУ
+    function applyFiltersAndSort() {
+        const searchTerm = searchInput.value.toLowerCase();
+        let visibleItems = [];
+
+        // ФИЛЬТРУЕМ (ПО ПОИСКУ И СТАТУСУ)
+        allItems.forEach(item => {
+            const title = item.dataset.title.toLowerCase();
+            const itemStatus = item.dataset.status;
+            
+            if (title.includes(searchTerm) && 
+                (currentStatusFilter === 'all' || itemStatus === currentStatusFilter)) {
+                item.style.display = '';
+                visibleItems.push(item);
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        // СОРТИРУЕМ
+visibleItems.sort((a, b) => {
+    const titleA = a.dataset.title.toLowerCase();
+    const titleB = b.dataset.title.toLowerCase();
+
+    switch (currentSort) {
+    case 'alphabetical':
+        return titleA.localeCompare(titleB, 'ru');
+    case 'alphabetical-reverse':
+        return titleB.localeCompare(titleA, 'ru');
+    case 'watch-time-desc':
+        // Больше часов вверху
+        const hoursA = parseInt(a.querySelector('.item-duration')?.textContent.match(/\d+/)?.[0] || 0);
+        const hoursB = parseInt(b.querySelector('.item-duration')?.textContent.match(/\d+/)?.[0] || 0);
+        return hoursB - hoursA;
+    case 'watch-time-asc':
+        // Меньше часов вверху
+        const hoursA2 = parseInt(a.querySelector('.item-duration')?.textContent.match(/\d+/)?.[0] || 0);
+        const hoursB2 = parseInt(b.querySelector('.item-duration')?.textContent.match(/\d+/)?.[0] || 0);
+        return hoursA2 - hoursB2;
+    default:
+        return 0;
+}
+});
+
+        // ОБНОВЛЯЕМ НУМЕРАЦИЮ
+        let counter = 1;
+        visibleItems.forEach(item => {
+            const numberBadge = item.querySelector('.item-number');
+            if (numberBadge) {
+                numberBadge.textContent = counter;
+            }
+            counter++;
+        });
+
+        // ПЕРЕУПОРЯДОЧИВАЕМ В DOM
+        visibleItems.forEach(item => {
+            itemsContainer.appendChild(item);
+        });
+
+        // ПОКАЗЫВАЕМ/СКРЫВАЕМ СООБЩЕНИЕ О ОТСУТСТВИИ РЕЗУЛЬТАТОВ
+        if (visibleItems.length === 0) {
+            noResultsMessage.style.display = 'block';
+        } else {
+            noResultsMessage.style.display = 'none';
+        }
+    }
+
+    // ИНИЦИАЛИЗАЦИЯ
+    applyFiltersAndSort();
+});
+</script>
+{% endblock %}

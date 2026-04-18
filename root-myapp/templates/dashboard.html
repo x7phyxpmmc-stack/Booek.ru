@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Media Tracker{% endblock %}
+
+{% block content %}
+
+<div class="section-header">
+  <h1>Ваша медиатека</h1>
+  <p>Отслеживайте, сколько времени вы провели за просмотром и чтением</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ total_items }}</div>
+    <div class="stat-label">Всего элементов</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ total_hours }}</div>
+    <div class="stat-label">Часов потрачено</div>
+  </div>
+</div>
+
+<div style="margin-top: 3rem;">
+  <h2 style="font-size: 1.5rem; margin-bottom: 1.5rem;">Категории</h2>
+  
+  <div class="categories-grid">
+    {% for cat in categories %}
+      <a href="{{ url_for('view_category', category_id=cat.category.id) }}" class="category-card" style="text-decoration: none; color: inherit;">
+        <div class="category-icon">
+          {% if cat.category.type == 'anime' %}
+            🎬
+          {% elif cat.category.type == 'manga' %}
+            📖
+          {% elif cat.category.type == 'films' %}
+            🎥
+          {% elif cat.category.type == 'series' %}
+            📺
+          {% elif cat.category.type == 'books' %}
+            📚
+          {% elif cat.category.type == 'games' %}
+            🎮
+          {% else %}
+            📦
+          {% endif %}
+        </div>
+	<div class="category-name">{{ cat.category.name|remove_emoji }}</div>
+        <div class="category-meta">
+          <div>
+            <div style="font-size: 1.2rem; font-weight: 700; color: var(--color-primary);">{{ cat.count }}</div>
+            <div style="font-size: 0.8rem; color: var(--color-text-secondary);">элементов</div>
+          </div>
+          <div>
+            <div style="font-size: 1.2rem; font-weight: 700; color: var(--color-primary);">{{ cat.hours }}</div>
+            <div style="font-size: 0.8rem; color: var(--color-text-secondary);">часов</div>
+          </div>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div style="margin-top: 3rem; text-align: center; color: var(--color-text-secondary); font-size: 0.9rem;">
+  <p>💡 Кликните на категорию, чтобы просмотреть все элементы</p>
+</div>
+
+{% endblock %}

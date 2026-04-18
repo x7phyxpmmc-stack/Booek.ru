@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Ошибка сервера - Media Tracker{% endblock %}
+{% block content %}
+<div style="text-align: center; padding: 3rem;">
+    <h1 style="font-size: 3rem;">500</h1>
+    <p style="font-size: 1.2rem; color: #666; margin: 1rem 0;">Ошибка сервера</p>
+    <p style="color: #999; margin-bottom: 2rem;">Что-то пошло не так. Пожалуйста, попробуйте позже.</p>
+    <a href="{{ url_for('dashboard') }}" class="btn">← На главную</a>
+</div>
+{% endblock %}
