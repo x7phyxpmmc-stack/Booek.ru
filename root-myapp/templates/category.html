@@ -55,7 +55,8 @@
     <!-- Сортировка + вид -->
     <div style="display:flex;gap:6px;align-items:center;margin-left:auto;">
       <select id="sortSelect" class="select-input" style="height:36px;padding:0 10px;font-size:13px;min-width:160px;" onchange="applyFilters()">
-        <option value="default">По умолчанию</option>
+        <option value="new_first">Недавно добавленные</option>
+        <option value="old_first">Сначала старые</option>
         <option value="alpha_asc">А → Я</option>
         <option value="alpha_desc">Я → А</option>
         <option value="hours_desc">Часы ↓</option>
@@ -102,7 +103,8 @@
           <tr class="item-entry"
               data-status="{{ item.data.status|lower }}"
               data-title="{{ item.base.title|lower }}"
-              data-hours="{{ item.hours }}">
+              data-hours="{{ item.hours }}"
+              data-id="{{ item.base.id }}">
             <td>
               <div class="td-title">
                 {% if item.base.cover_image %}
@@ -171,7 +173,8 @@
       <div class="media-card item-entry"
            data-status="{{ item.data.status|lower }}"
            data-title="{{ item.base.title|lower }}"
-           data-hours="{{ item.hours }}">
+           data-hours="{{ item.hours }}"
+           data-id="{{ item.base.id }}">
         <a href="{{ url_for('edit_' + item.type, item_id=item.base.id) }}" class="media-card-poster-wrap">
           {% if item.base.cover_image %}
             {% if item.base.cover_source == 'url' %}
@@ -227,7 +230,8 @@
          class="compact-card item-entry"
          data-status="{{ item.data.status|lower }}"
          data-title="{{ item.base.title|lower }}"
-         data-hours="{{ item.hours }}">
+         data-hours="{{ item.hours }}"
+         data-id="{{ item.base.id }}">
         {% if item.base.cover_image %}
           {% if item.base.cover_source == 'url' %}
             <img class="compact-poster" src="{{ item.base.cover_image }}" alt="{{ item.base.title }}" loading="lazy">
@@ -288,6 +292,8 @@ const VIEW_KEY = 'booek-view-{{ category.type }}';
 const SORT_KEY = 'booek-sort-{{ category.type }}';
 let currentView   = localStorage.getItem(VIEW_KEY) || 'list';
 let currentStatus = 'all';
+// Дефолтная сортировка — недавно добавленные
+const SORT_DEFAULT = 'new_first';
 
 function setView(v) {
   currentView = v;
@@ -335,11 +341,13 @@ function applyFilters() {
     const children = Array.from(container.children).filter(el => el.classList.contains('item-entry'));
     children.sort((a, b) => {
       switch (sort) {
+        case 'new_first':  return parseInt(b.dataset.id) - parseInt(a.dataset.id);  // новые сверху
+        case 'old_first':  return parseInt(a.dataset.id) - parseInt(b.dataset.id);  // старые сверху
         case 'alpha_asc':  return a.dataset.title.localeCompare(b.dataset.title, 'ru');
         case 'alpha_desc': return b.dataset.title.localeCompare(a.dataset.title, 'ru');
         case 'hours_desc': return parseFloat(b.dataset.hours) - parseFloat(a.dataset.hours);
         case 'hours_asc':  return parseFloat(a.dataset.hours) - parseFloat(b.dataset.hours);
-        default: return 0;
+        default: return parseInt(b.dataset.id) - parseInt(a.dataset.id); // фоллбэк — тоже new_first
       }
     });
     children.forEach(el => container.appendChild(el));
@@ -348,8 +356,9 @@ function applyFilters() {
 
 // Init on load
 (function() {
-  const savedSort = localStorage.getItem(SORT_KEY);
-  if (savedSort) document.getElementById('sortSelect').value = savedSort;
+  // Читаем сохранённую сортировку или ставим дефолт
+  const savedSort = localStorage.getItem(SORT_KEY) || SORT_DEFAULT;
+  document.getElementById('sortSelect').value = savedSort;
   setView(currentView);
   applyFilters();
 })();

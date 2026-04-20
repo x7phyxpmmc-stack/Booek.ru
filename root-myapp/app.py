@@ -609,7 +609,8 @@ def view_category(category_id):
         conn.close()
         return redirect(url_for('dashboard'))
 
-    items_base = conn.execute('SELECT * FROM items_base WHERE category_id = ? ORDER BY title', (category_id,)).fetchall()
+    # ORDER BY id DESC — новые записи сверху (id растёт монотонно при добавлении)
+    items_base = conn.execute('SELECT * FROM items_base WHERE category_id = ? ORDER BY id DESC', (category_id,)).fetchall()
 
     items_with_data = []
     total_hours_cat = 0
