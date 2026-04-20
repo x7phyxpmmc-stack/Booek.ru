@@ -691,6 +691,7 @@ def add_item(cat_type):
         cover_file = request.files.get('cover_image')
         cover_url = request.form.get('cover_url', '').strip()
         source_url = request.form.get('source_url', '').strip()
+        notes = request.form.get('notes', '').strip()  # заметки пользователя
 
         cover_image = None
         cover_source = None
@@ -706,8 +707,8 @@ def add_item(cat_type):
         c = conn.cursor()
 
         c.execute(
-            'INSERT INTO items_base (category_id, title, cover_image, cover_source, source_url) VALUES (?, ?, ?, ?, ?)',
-            (cat['id'], title, cover_image, cover_source, source_url if source_url else None)
+            'INSERT INTO items_base (category_id, title, cover_image, cover_source, source_url, notes) VALUES (?, ?, ?, ?, ?, ?)',
+            (cat['id'], title, cover_image, cover_source, source_url if source_url else None, notes or None)
         )
         conn.commit()
         item_id = c.lastrowid
@@ -833,6 +834,7 @@ def edit_item(item_id):
         cover_file = request.files.get('cover_image')
         cover_url = request.form.get('cover_url', '').strip()
         source_url = request.form.get('source_url', '').strip()
+        notes = request.form.get('notes', '').strip()  # заметки пользователя
 
         cover_image = item['base']['cover_image']
         cover_source = item['base']['cover_source']
@@ -852,8 +854,8 @@ def edit_item(item_id):
         c = conn.cursor()
 
         c.execute(
-            'UPDATE items_base SET title = ?, cover_image = ?, cover_source = ?, source_url = ? WHERE id = ?',
-            (title, cover_image, cover_source, source_url if source_url else None, item_id)
+            'UPDATE items_base SET title = ?, cover_image = ?, cover_source = ?, source_url = ?, notes = ? WHERE id = ?',
+            (title, cover_image, cover_source, source_url if source_url else None, notes or None, item_id)
         )
 
         cat_type = item['type']
