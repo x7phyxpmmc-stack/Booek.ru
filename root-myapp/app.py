@@ -715,39 +715,42 @@ def add_item(cat_type):
             episodes = int(request.form.get('episodes', 0) or 0)
             anime_type = request.form.get('anime_type', 'сериал')
             status = request.form.get('status', 'планирую')
-            # ВАЖНО: Порядок как в CREATE TABLE!
+            rewatches = int(request.form.get('rewatches', 0) or 0)  # Читаем из формы
+            watched_ep = int(request.form.get('watched_episodes', 0) or 0)
             c.execute(
                 'INSERT INTO items_anime (item_id, episodes, anime_type, rewatches, status, watched_episodes) VALUES (?, ?, ?, ?, ?, ?)',
-                (item_id, episodes, anime_type, 0, status, 0)
+                (item_id, episodes, anime_type, rewatches, status, watched_ep)
             )
 
         elif cat_type == 'manga':
             chapters = int(request.form.get('chapters', 0) or 0)
             manga_type = request.form.get('manga_type', 'манга')
             status = request.form.get('status', 'планирую')
-            # ВАЖНО: Порядок как в CREATE TABLE!
+            rerereads = int(request.form.get('rerereads', 0) or 0)  # Читаем из формы
+            read_ch = int(request.form.get('read_chapters', 0) or 0)
             c.execute(
                 'INSERT INTO items_manga (item_id, chapters, manga_type, rerereads, status, read_chapters) VALUES (?, ?, ?, ?, ?, ?)',
-                (item_id, chapters, manga_type, 0, status, 0)
+                (item_id, chapters, manga_type, rerereads, status, read_ch)
             )
 
         elif cat_type == 'films':
             duration = int(request.form.get('duration', 0) or 0)
             status = request.form.get('status', 'планирую')
-            # ВАЖНО: Порядок как в CREATE TABLE!
+            rewatches = int(request.form.get('rewatches', 0) or 0)  # Читаем из формы
             c.execute(
                 'INSERT INTO items_films (item_id, duration, rewatches, status) VALUES (?, ?, ?, ?)',
-                (item_id, duration, 0, status)
+                (item_id, duration, rewatches, status)
             )
 
         elif cat_type == 'series':
             episodes = int(request.form.get('episodes', 0) or 0)
             ep_dur = int(request.form.get('episode_duration', 0) or 0)
             status = request.form.get('status', 'планирую')
-            # ВАЖНО: Порядок как в CREATE TABLE!
+            rewatches = int(request.form.get('rewatches', 0) or 0)  # Читаем из формы
+            watched_ep = int(request.form.get('watched_episodes', 0) or 0)
             c.execute(
                 'INSERT INTO items_series (item_id, episodes, episode_duration, rewatches, status, watched_episodes) VALUES (?, ?, ?, ?, ?, ?)',
-                (item_id, episodes, ep_dur, 0, status, 0)
+                (item_id, episodes, ep_dur, rewatches, status, watched_ep)
             )
 
         elif cat_type == 'books':
@@ -755,10 +758,11 @@ def add_item(cat_type):
             pages_dur = int(request.form.get('pages_duration', 0) or 0)
             hours = float(request.form.get('hours_reading', 0) or 0)
             status = request.form.get('status', 'планирую')
-            # ВАЖНО: Порядок как в CREATE TABLE!
+            rerereads = int(request.form.get('rerereads', 0) or 0)  # Читаем из формы
+            pages_read = int(request.form.get('pages_read', 0) or 0)
             c.execute(
                 'INSERT INTO items_books (item_id, book_type, pages_duration, hours_reading, rerereads, status, pages_read) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                (item_id, book_type, pages_dur, hours, 0, status, 0)
+                (item_id, book_type, pages_dur, hours, rerereads, status, pages_read)
             )
 
         elif cat_type == 'games':
