@@ -4,6 +4,7 @@ from functools import wraps
 import os
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.middleware.proxy_fix import ProxyFix  # Нужен для корректной работы за nginx-прокси по HTTPS
 import hmac
 import hashlib
 from io import BytesIO
@@ -12,6 +13,11 @@ from flask_limiter.util import get_remote_address
 import secrets
 app = Flask(__name__)
 import re
+
+# ProxyFix: говорит Flask доверять заголовкам X-Forwarded-Proto/Host от nginx.
+# Без этого Flask думает, что работает по HTTP, и url_for() генерирует http:// ссылки
+# даже когда снаружи HTTPS — браузер блокирует их как mixed content.
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 @app.template_filter('remove_emoji')
 def remove_emoji(text):
@@ -33,8 +39,10 @@ limiter = Limiter(
 
 # Конфигурация безопасной сессии
 app.config.update(
-    SESSION_COOKIE_HTTPONLY=True,  # XSS защита: недоступно для JS
-    SESSION_COOKIE_SAMESITE='Strict',  # CSRF защита
+    SESSION_COOKIE_HTTPONLY=True,   # XSS защита: cookie недоступны JS
+    SESSION_COOKIE_SECURE=True,     # Cookie передаётся только по HTTPS
+    SESSION_COOKIE_SAMESITE='Lax',  # 'Lax' вместо 'Strict': Strict блокирует cookie при
+                                    # переходе с другого сайта — пользователь вылетает из сессии
     PERMANENT_SESSION_LIFETIME=2592000  # 30 дней в секундах
 )
 
@@ -46,8 +54,13 @@ def set_security_headers(response):
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Content-Security-Policy'] = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline'; "
-        "style-src 'self' 'unsafe-inline'; "
+        # Разрешаем CDN Chart.js и наши скрипты
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+        # Разрешаем Google Fonts CSS и наши стили
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        # Разрешаем загрузку шрифтовых файлов с Google Fonts
+        "font-src 'self' https://fonts.gstatic.com; "
+        # Разрешаем изображения: наши + любые https + data:URI (для обложек)
         "img-src 'self' https: data:;"
     )
     return response
