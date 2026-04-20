@@ -258,30 +258,6 @@
   </div>
   {% endif %}
 
-  <!-- ИМПОРТ -->
-  <div class="card mt-4">
-    <div class="card-head">
-      <div>
-        <h2>Импорт данных</h2>
-        <p>Восстановить из JSON-резервной копии</p>
-      </div>
-    </div>
-    <form method="POST" action="{{ url_for('import_data') }}" enctype="multipart/form-data"
-          style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
-      <div class="field" style="flex:1;min-width:200px;">
-        <label>JSON файл</label>
-        <input type="file" name="file" accept=".json" class="input">
-      </div>
-      <div class="field">
-        <label>Режим</label>
-        <select name="import_mode" class="select-input" style="width:auto;min-width:160px;">
-          <option value="merge">Объединить</option>
-          <option value="replace">Заменить всё</option>
-        </select>
-      </div>
-      <button type="submit" class="btn-primary">Импортировать</button>
-    </form>
-  </div>
 
 </div>
 {% endblock %}

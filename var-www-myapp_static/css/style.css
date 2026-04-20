@@ -961,3 +961,190 @@ tbody tr:hover td { background: var(--surface-soft); }
   .compact-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
   .status-stats-grid, .type-dist-grid { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   KPI-3 — три карточки вместо четырёх
+   ============================================================ */
+.kpis-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 760px) {
+  .kpis-3 { grid-template-columns: 1fr 1fr; }
+}
+
+/* ============================================================
+   ДЕСКТОП: СВОРАЧИВАНИЕ САЙДБАРА (sidebar-collapsed)
+   ============================================================ */
+
+/* Когда сайдбар свёрнут — layout становится однослойным */
+.layout.sidebar-collapsed {
+  grid-template-columns: 52px 1fr;
+  gap: 12px;
+}
+
+/* Свёрнутый сайдбар: только иконки */
+.layout.sidebar-collapsed .sidebar {
+  width: 52px;
+  overflow: hidden;
+  padding: 12px 8px;
+}
+
+/* Прячем текст при свёртке */
+.layout.sidebar-collapsed .side-label,
+.layout.sidebar-collapsed .side-badge,
+.layout.sidebar-collapsed .side-section-label {
+  display: none;
+}
+
+/* Центрируем иконки */
+.layout.sidebar-collapsed .side-item {
+  padding: 10px 8px;
+  justify-content: center;
+}
+.layout.sidebar-collapsed .side-item-left {
+  gap: 0;
+  justify-content: center;
+}
+.layout.sidebar-collapsed .side-icon {
+  font-size: 18px;
+}
+
+/* Плавная анимация */
+.sidebar {
+  transition: width 0.28s cubic-bezier(0.16,1,0.3,1),
+              padding 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+.layout {
+  transition: grid-template-columns 0.28s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Hamburger кнопка — унифицированный стиль (SVG иконка) */
+.hamburger {
+  display: flex;
+  align-items: center; justify-content: center;
+  width: 36px; height: 36px;
+  border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface-soft); cursor: pointer;
+  color: var(--text); flex-shrink: 0;
+  transition: background 0.15s;
+}
+.hamburger:hover { background: var(--surface-muted); }
+
+/* На широких экранах кнопка всегда видна (для toggle) */
+@media (min-width: 1101px) {
+  .hamburger { display: flex; }
+}
+
+/* ============================================================
+   СТАТУСЫ НА ПОСТЕРАХ — непрозрачный фон в режиме карточек
+   ============================================================ */
+.media-card-overlay {
+  position: absolute; bottom: 8px; left: 8px; right: 8px;
+}
+/* Переопределяем теги внутри карточек постеров */
+.media-card-overlay .tag {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  /* Непрозрачный фон по умолчанию */
+  background: rgba(0,0,0,0.55) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,255,255,0.18);
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+/* Цветовые акценты сохраняем через левую границу */
+.media-card-overlay .tag.success {
+  border-left: 3px solid #34c759;
+}
+.media-card-overlay .tag.primary {
+  border-left: 3px solid #0a84ff;
+}
+.media-card-overlay .tag.warning {
+  border-left: 3px solid #ff9f0a;
+}
+
+/* ============================================================
+   СТАТИСТИКА ДЕСКТОП: улучшенная раскладка
+   ============================================================ */
+
+/* Две колонки для bar-чартов */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* bar-row — убираем лишнюю ширину label, даём больше места полосе */
+.bar-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 46px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.bar-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bar-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: right;
+}
+.bar-track {
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--primary);
+  transition: width 0.5s cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Статусная статистика — сетка 3 колонки на десктопе */
+.status-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px 24px;
+}
+
+/* Распределение по типам — 3 колонки */
+.type-dist-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px 24px;
+}
+
+/* Прогресс — 4 KPI горизонтально */
+.progress-blocks {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1100px) {
+  .stats-grid         { grid-template-columns: 1fr; }
+  .status-stats-grid  { grid-template-columns: repeat(2, 1fr); }
+  .type-dist-grid     { grid-template-columns: repeat(2, 1fr); }
+  .progress-blocks    { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .status-stats-grid  { grid-template-columns: 1fr; }
+  .type-dist-grid     { grid-template-columns: 1fr; }
+  .progress-blocks    { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid         { grid-template-columns: 1fr; }
+}
+
+/* ============================================================
+   HAMBURGER — убираем старые span-линии (теперь SVG)
+   ============================================================ */
+.hamburger span { display: none; }

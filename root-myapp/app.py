@@ -442,24 +442,32 @@ def get_status_statistics():
 
 
 def get_progress_stats():
-    """Общий прогресс: завершено / в процессе / в планах / брошено"""
+    """Общий прогресс: завершено / в процессе / в планах / брошено.
+    Используем параметризацию через ? — нет SQL-ошибок с одиночным значением."""
     conn = get_db()
-    done_statuses      = "('просмотрено', 'прочитано', 'прошёл целиком')"
-    progress_statuses  = "('смотрю', 'читаю', 'играю')"
-    planned_statuses   = "('планирую',)"
-    dropped_statuses   = "('не досмотрел', 'не дочитал', 'прошёл частично')"
 
-    tables = ['items_anime', 'items_manga', 'items_films', 'items_series', 'items_books', 'items_games']
+    # Группы статусов задаются как списки Python
+    DONE_STATUSES     = ['просмотрено', 'прочитано', 'прошёл целиком']
+    PROGRESS_STATUSES = ['смотрю', 'читаю', 'играю']
+    PLANNED_STATUSES  = ['планирую']
+    DROPPED_STATUSES  = ['не досмотрел', 'не дочитал', 'прошёл частично']
+
+    TABLES = ['items_anime', 'items_manga', 'items_films',
+              'items_series', 'items_books', 'items_games']
 
     counts = {'done': 0, 'in_progress': 0, 'planned': 0, 'dropped': 0}
-    for t in tables:
-        try:
-            for key, statuses in [('done', done_statuses), ('in_progress', progress_statuses),
-                                   ('planned', planned_statuses), ('dropped', dropped_statuses)]:
-                r = conn.execute(f'SELECT COUNT(*) FROM {t} WHERE status IN {statuses}').fetchone()
+
+    for table in TABLES:
+        for key, statuses in [('done', DONE_STATUSES), ('in_progress', PROGRESS_STATUSES),
+                               ('planned', PLANNED_STATUSES), ('dropped', DROPPED_STATUSES)]:
+            try:
+                placeholders = ', '.join('?' * len(statuses))
+                sql = f'SELECT COUNT(*) FROM {table} WHERE status IN ({placeholders})'
+                r = conn.execute(sql, statuses).fetchone()
                 counts[key] += r[0] if r else 0
-        except Exception:
-            pass
+            except Exception:
+                pass
+
     conn.close()
     return counts
 
@@ -1027,7 +1035,6 @@ def delete_item(item_id):
 # ИМПОРТ/ЭКСПОРТ (ленивый импорт openpyxl)
 # ========================================================================
 
-from io import BytesIO
 
 @app.route('/export/json')
 @auth_required
@@ -1049,75 +1056,20 @@ def export_json():
 @app.route('/export/excel')
 @auth_required
 def export_excel():
-    """Экспортирует данные в Excel таблицу"""
+    """Экспортирует медиатеку в Excel (листы по категориям + сводка)."""
     from export_import import export_to_excel
-    import os
-    print("=" * 50)
-    print("🟡 START EXPORT EXCEL")
-    print("=" * 50)
     try:
-        excel_file, filename = export_to_excel()
-        print(f"🟡 Excel file path: {excel_file}")
-        print(f"🟡 Filename: {filename}")
-        if excel_file is None:
-            print("🔴 ERROR: excel_file is None")
-            flash('Ошибка при экспорте', 'error')
-            return redirect(url_for('statistics'))
-        if not os.path.exists(excel_file):
-            print(f"🔴 ERROR: File does not exist at {excel_file}")
-            print(f"🔴 Current directory: {os.getcwd()}")
-            print(f"🔴 Directory contents: {os.listdir('.')}")
-            flash('Ошибка при экспорте: файл не найден', 'error')
-            return redirect(url_for('statistics'))
-        file_size = os.path.getsize(excel_file)
-        print(f"🟢 File exists! Size: {file_size} bytes")
-        print(f"🟡 Sending file: {excel_file}")
-        response = send_file(
-            excel_file,
+        buf, filename = export_to_excel()
+        return send_file(
+            buf,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             as_attachment=True,
             download_name=filename
         )
-        print("🟢 File sent successfully!")
-        print("=" * 50)
-        return response
     except Exception as e:
-        print(f"🔴 ERROR in export_excel: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        print("=" * 50)
         flash(f'Ошибка при экспорте: {str(e)}', 'error')
         return redirect(url_for('statistics'))
 
-@app.route('/import', methods=['GET', 'POST'])
-@auth_required
-def import_data():
-    """Импортирует данные из JSON файла"""
-    from export_import import import_from_json
-    if request.method == 'POST':
-        if 'file' not in request.files:
-            flash('Файл не выбран', 'error')
-            return redirect(url_for('statistics'))
-        file = request.files['file']
-        if file.filename == '':
-            flash('Файл не выбран', 'error')
-            return redirect(url_for('statistics'))
-        if not file.filename.endswith('.json'):
-            flash('Допускается только JSON файлы', 'error')
-            return redirect(url_for('statistics'))
-        try:
-            content = file.read().decode('utf-8')
-            mode = request.form.get('import_mode', 'merge')
-            success, message = import_from_json(content, mode=mode)
-            if success:
-                flash(f'✅ {message}', 'success')
-            else:
-                flash(f'❌ {message}', 'error')
-            return redirect(url_for('statistics'))
-        except Exception as e:
-            flash(f'❌ Ошибка при обработке файла: {str(e)}', 'error')
-            return redirect(url_for('statistics'))
-    return redirect(url_for('statistics'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

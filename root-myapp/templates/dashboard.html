@@ -13,7 +13,7 @@
 <div class="page-body">
 
   <!-- KPI -->
-  <div class="kpis">
+  <div class="kpis kpis-3">
     <div class="kpi">
       <div class="kpi-label">Всего записей</div>
       <div class="kpi-value">{{ total_items }}</div>
@@ -29,11 +29,7 @@
       <div class="kpi-value" style="font-size:22px;">{{ top_category.name if top_category else '—' }}</div>
       <div class="kpi-sub">{{ top_category.hours }} ч · {{ top_category.count }} записей</div>
     </div>
-    <div class="kpi">
-      <div class="kpi-label">Категорий</div>
-      <div class="kpi-value">{{ categories|length }}</div>
-      <div class="kpi-sub">разделов медиатеки</div>
-    </div>
+
   </div>
 
   {% if recent_items %}
