@@ -129,7 +129,15 @@
                 <span class="tag">{{ item.data.status|capitalize }}</span>
               {% endif %}
             </td>
-            <td><strong>{{ item.hours }}</strong></td>
+            <td>
+              <strong>{{ item.hours }}</strong>
+              {# Повторные просмотры/прочтения: показываем бейдж ×N если > 0 #}
+              {% if category.type in ['anime', 'films', 'series'] and item.data.rewatches > 0 %}
+                <span class="rewatch-badge" title="{{ item.data.rewatches }} повторных просмотра(ов)">×{{ item.data.rewatches }}</span>
+              {% elif category.type in ['manga', 'books'] and item.data.rerereads > 0 %}
+                <span class="rewatch-badge" title="{{ item.data.rerereads }} повторных прочтения(ий)">×{{ item.data.rerereads }}</span>
+              {% endif %}
+            </td>
             {% if category.type == 'anime' %}
             <td>{{ item.data.episodes }}</td><td><span class="tag">{{ item.data.anime_type }}</span></td>
             {% elif category.type == 'manga' %}
@@ -198,6 +206,12 @@
             {% elif category.type == 'series' %}<span>{{ item.data.episodes }} сер.</span>
             {% elif category.type == 'books' %}<span>{{ item.data.pages_duration }} стр.</span>
             {% endif %}
+            {# Повтор-бейдж в карточке: показываем если > 0 #}
+            {% if category.type in ['anime', 'films', 'series'] and item.data.rewatches > 0 %}
+              <span class="rewatch-badge" title="{{ item.data.rewatches }} повт.">×{{ item.data.rewatches }}</span>
+            {% elif category.type in ['manga', 'books'] and item.data.rerereads > 0 %}
+              <span class="rewatch-badge" title="{{ item.data.rerereads }} повт.">×{{ item.data.rerereads }}</span>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -228,6 +242,12 @@
         <div class="compact-info">
           <div class="compact-title">{{ item.base.title }}</div>
           <div class="compact-sub">{{ item.hours }} ч
+            {# Повтор-бейдж в компакте #}
+            {% if category.type in ['anime', 'films', 'series'] and item.data.rewatches > 0 %}
+              <span class="rewatch-badge rewatch-badge-sm">×{{ item.data.rewatches }}</span>
+            {% elif category.type in ['manga', 'books'] and item.data.rerereads > 0 %}
+              <span class="rewatch-badge rewatch-badge-sm">×{{ item.data.rerereads }}</span>
+            {% endif %}
             {% if item.data.status in ['просмотрено', 'прочитано', 'прошёл целиком'] %}
               · <span style="color:var(--success-text);">✓</span>
             {% elif item.data.status in ['смотрю', 'читаю', 'играю'] %}

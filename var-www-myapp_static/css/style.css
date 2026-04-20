@@ -894,6 +894,27 @@ tbody tr:hover td { background: var(--surface-soft); }
 .tag-xs { height: 20px; padding: 0 7px; font-size: 11px; }
 .tag.muted { background: var(--surface-muted); color: var(--text-muted); }
 
+/* Бейдж повторных просмотров/прочтений — ×N рядом с часами */
+.rewatch-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 5px;
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: var(--primary-soft);
+  color: var(--primary);
+  vertical-align: middle;
+  line-height: 1.6;
+}
+/* Вариант поменьше — для компактного вида */
+.rewatch-badge-sm {
+  font-size: 10px;
+  padding: 0px 5px;
+}
+
 /* ============================================================
    STATISTICS: Status stats
    ============================================================ */
